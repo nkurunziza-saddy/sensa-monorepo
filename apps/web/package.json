@@ -47,6 +47,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.6.5",
     "@sensa-monorepo/config": "workspace:*",
     "@tailwindcss/postcss": "^4.2.4",
     "@tanstack/react-query-devtools": "^5.100.5",

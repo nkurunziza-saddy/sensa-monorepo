@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { Worker } from "alchemy/cloudflare";
+import { Nextjs, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
@@ -26,6 +26,16 @@ export const server = await Worker("server", {
   },
 });
 
+export const web = await Nextjs("web", {
+  cwd: "../../apps/web",
+  build: {
+    env: {
+      NEXT_PUBLIC_SERVER_URL: server.url,
+    },
+  },
+});
+
 console.log(`Server -> ${server.url}`);
+console.log(`Web -> ${web.url}`);
 
 await app.finalize();
