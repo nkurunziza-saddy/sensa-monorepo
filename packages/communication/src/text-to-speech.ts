@@ -2,39 +2,44 @@ import type { TextToSpeechProvider } from "./index";
 
 export interface SpeechSynthesizerOptions {
   apiUrl?: string;
-}
-
-let sharedAudioContext: AudioContext | null = null;
-
-function getAudioContext() {
-  if (typeof window === "undefined") return null;
-  if (!sharedAudioContext) {
-    sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
-  return sharedAudioContext;
+  useNative?: boolean;
 }
 
 export function createSpeechSynthesizer(
   options: SpeechSynthesizerOptions = {},
 ): TextToSpeechProvider {
-  const apiUrl = options.apiUrl || "http://localhost:3000/api/text-to-speech";
-
   let startCallback: () => void = () => {};
   let endCallback: () => void = () => {};
   let errorCallback: (err: Error) => void = () => {};
 
-  const speak = async (text: string, voice?: string) => {
-    const audioContext = getAudioContext();
-    if (!audioContext) return;
+  const speakNative = (text: string, voice?: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      errorCallback(new Error("Speech synthesis not supported"));
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (voice) {
+      const voices = window.speechSynthesis.getVoices();
+      const selectedVoice = voices.find((v) => v.name === voice || v.lang === voice);
+      if (selectedVoice) utterance.voice = selectedVoice;
+    }
+
+    utterance.onstart = () => startCallback();
+    utterance.onend = () => endCallback();
+    utterance.onerror = (e) => errorCallback(new Error(e.error));
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const speakApi = async (text: string, voice?: string) => {
+    if (typeof window === "undefined") return;
+    const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const audioContext = new AudioContext();
 
     try {
       startCallback();
-
-      if (audioContext.state === "suspended") {
-        await audioContext.resume();
-      }
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch(options.apiUrl!, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, voice }),
@@ -47,11 +52,23 @@ export function createSpeechSynthesizer(
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.destination);
-      source.onended = () => endCallback();
+      source.onended = () => {
+        endCallback();
+        audioContext.close();
+      };
       source.start();
     } catch (error) {
       errorCallback(error as Error);
       endCallback();
+      audioContext.close();
+    }
+  };
+
+  const speak = async (text: string, voice?: string) => {
+    if (options.apiUrl && options.useNative !== true) {
+      await speakApi(text, voice);
+    } else {
+      speakNative(text, voice);
     }
   };
 
@@ -68,3 +85,4 @@ export function createSpeechSynthesizer(
     },
   };
 }
+

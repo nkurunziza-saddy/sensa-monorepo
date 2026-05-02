@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "echo 'Skipping alchemy dev locally...'",
+    "dev": "alchemy dev",
+    "build": "echo 'No build step required for infra'",
     "deploy": "alchemy deploy",
     "destroy": "alchemy destroy"
   },

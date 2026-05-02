@@ -12,7 +12,8 @@ export function useGestureDetection(
     handFound: false,
     isCentered: false,
     distance: "ideal",
-    score: 0,
+    orientation: "upright",
+    confidence: 0,
   });
   const [detectedGesture, setDetectedGesture] = useState<{
     gesture: string;
@@ -22,7 +23,7 @@ export function useGestureDetection(
   const [error, setError] = useState<string | null>(null);
 
   const detectorRef = useRef<ReturnType<typeof createGestureDetector> | null>(null);
-  const lastMetadataRef = useRef<DetectionMetadata | null>(null);
+  const isStartingRef = useRef(false);
   const { hapticFeedback } = useAccessibilitySettings();
 
   const vibrate = useCallback(
@@ -35,7 +36,23 @@ export function useGestureDetection(
   );
 
   const start = useCallback(async () => {
+    if (!videoElement) return;
+    if (isStartingRef.current) return;
+
+    if (detectorRef.current) {
+      detectorRef.current.stop();
+    }
+    
+    isStartingRef.current = true;
     setError(null);
+    setDetectedGesture(null);
+    setMetadata({
+      handFound: false,
+      isCentered: false,
+      distance: "ideal",
+      orientation: "upright",
+      confidence: 0,
+    });
     vibrate(50);
 
     const detector = createGestureDetector({
@@ -49,16 +66,7 @@ export function useGestureDetection(
     });
 
     detector.onMetadata((m) => {
-      const prev = lastMetadataRef.current;
-      if (
-        !prev ||
-        prev.handFound !== m.handFound ||
-        prev.isCentered !== m.isCentered ||
-        prev.distance !== m.distance
-      ) {
-        lastMetadataRef.current = m;
-        setMetadata(m);
-      }
+      setMetadata(m);
     });
 
     detector.onError((err) => {
@@ -73,6 +81,8 @@ export function useGestureDetection(
     } catch (err) {
       setError((err as Error).message);
       setIsDetecting(false);
+    } finally {
+      isStartingRef.current = false;
     }
   }, [videoElement, canvasElement, vibrate]);
 
@@ -82,7 +92,9 @@ export function useGestureDetection(
       detectorRef.current = null;
     }
     setIsDetecting(false);
-    setMetadata({ handFound: false, isCentered: false, distance: "ideal", score: 0 });
+    setError(null);
+    setDetectedGesture(null);
+    setMetadata({ handFound: false, isCentered: false, distance: "ideal", orientation: "upright", confidence: 0 });
   }, []);
 
   const simulateGesture = useCallback((gestureId: string) => {

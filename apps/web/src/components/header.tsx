@@ -1,8 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import { Flex, Box, Center, Text, HStack } from "@chakra-ui/react";
-import { MessageSquare, Settings } from "lucide-react";
+import { Flex, Box, Text, HStack } from "@chakra-ui/react";
 
 export default function Header() {
   return (
@@ -28,17 +27,39 @@ export default function Header() {
           href="/"
           style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
         >
-          <Center w="8" h="8" bg="brand-pink" rounded="clay-md" color="white">
-            <MessageSquare size={16} strokeWidth={2.5} />
-          </Center>
           <Text fontWeight="600" fontSize="18px" letterSpacing="-0.03em" color="primary">
             Sensa
           </Text>
         </NextLink>
 
         <HStack gap={6} align="center">
+          <NextLink href="/landing" style={{ textDecoration: "none" }}>
+            <Text
+              fontSize="12px"
+              fontWeight="700"
+              textTransform="uppercase"
+              letterSpacing="0.18em"
+              color="muted"
+              transition="color 0.2s ease"
+            >
+              Landing
+            </Text>
+          </NextLink>
+          <NextLink href="/" style={{ textDecoration: "none" }}>
+            <Text
+              fontSize="12px"
+              fontWeight="700"
+              textTransform="uppercase"
+              letterSpacing="0.18em"
+              color="muted"
+              transition="color 0.2s ease"
+            >
+              App
+            </Text>
+          </NextLink>
           <Box w="1px" h="4" bg="hairline" />
-        </HStack>      </Flex>
+        </HStack>
+      </Flex>
     </Box>
   );
 }

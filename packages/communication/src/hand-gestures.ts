@@ -8,159 +8,173 @@ export interface DetectionMetadata {
   isCentered: boolean;
   distance: "near" | "far" | "ideal";
   handFound: boolean;
-  score: number;
+  orientation: "upright" | "sideways" | "inverted";
+  confidence: number;
 }
 
 /**
- * Calculates the angle between three points (A, B, C) where B is the vertex.
+ * Calculates the Euclidean distance between two points.
+ */
+function getDist(p1: HandLandmark, p2: HandLandmark) {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Calculates the angle (0-180) between three points.
  */
 function getAngle(a: HandLandmark, b: HandLandmark, c: HandLandmark): number {
   const v1 = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
   const v2 = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z };
-
-  const dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-  const mag1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
-  const mag2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z);
-
-  return Math.acos(dotProduct / (mag1 * mag2)) * (180 / Math.PI);
+  const dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+  const mag1 = Math.sqrt(v1.x**2 + v1.y**2 + v1.z**2);
+  const mag2 = Math.sqrt(v2.x**2 + v2.y**2 + v2.z**2);
+  return Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2)))) * (180 / Math.PI);
 }
 
-export function detectGesture(landmarks: HandLandmark[]): {
-  gesture: string | null;
-  metadata: DetectionMetadata;
-} {
+export function detectGesture(landmarks: HandLandmark[]): { gesture: string | null; metadata: DetectionMetadata } {
   const metadata: DetectionMetadata = {
     isCentered: false,
     distance: "ideal",
     handFound: !!(landmarks && landmarks.length >= 21),
-    score: 0,
+    orientation: "upright",
+    confidence: 0
   };
 
   if (!metadata.handFound) return { gesture: null, metadata };
 
-  // 1. Precise Position Analysis
+  // 1. Normalize and Analyze Palm Orientation
   const wrist = landmarks[0];
-  const palmBase = landmarks[9]; // Middle finger MCP
-  metadata.isCentered = wrist.x > 0.25 && wrist.x < 0.75 && wrist.y > 0.2 && wrist.y < 0.8;
+  const middleBase = landmarks[9];
+  const indexBase = landmarks[5];
+  const pinkyBase = landmarks[17];
+  const palmWidth = getDist(indexBase, pinkyBase);
+  const palmHeight = getDist(wrist, middleBase);
+  const handScale = Math.max((palmWidth + palmHeight) / 2, 0.001);
 
-  const handSize = Math.sqrt(Math.pow(wrist.x - palmBase.x, 2) + Math.pow(wrist.y - palmBase.y, 2));
-  if (handSize < 0.12) metadata.distance = "far";
-  else if (handSize > 0.35) metadata.distance = "near";
-  else metadata.distance = "ideal";
+  // Center & Distance
+  metadata.isCentered = wrist.x > 0.2 && wrist.x < 0.8 && wrist.y > 0.15 && wrist.y < 0.85;
+  if (handScale < 0.11) metadata.distance = "far";
+  else if (handScale > 0.28) metadata.distance = "near";
+  
+  // Orientation (Vector from wrist to middle base)
+  const dy = wrist.y - middleBase.y;
+  const dx = wrist.x - middleBase.x;
+  if (Math.abs(dx) > Math.abs(dy)) metadata.orientation = "sideways";
+  else if (dy < 0) metadata.orientation = "inverted";
 
-  // 2. Finger Extension Detection (Angle-Based)
-  // We check if the angle at the PIP joint is close to 180 degrees
-  const isExtended = (base: number, pip: number, tip: number) => {
-    const angle = getAngle(landmarks[base], landmarks[pip], landmarks[tip]);
-    return angle > 150; // High angle means finger is straight
+  // 2. Advanced Finger State Logic
+  // A finger is "Extended" if its joint angle is near 180 degrees AND its tip is far from the palm
+  const checkFinger = (mcp: number, pip: number, tip: number) => {
+    const angle = getAngle(landmarks[mcp], landmarks[pip], landmarks[tip]);
+    const tipToWrist = getDist(landmarks[tip], wrist);
+    const pipToWrist = getDist(landmarks[pip], wrist);
+    const tipToMcp = getDist(landmarks[tip], landmarks[mcp]);
+    const pipToMcp = getDist(landmarks[pip], landmarks[mcp]);
+    const isLongEnough = tipToWrist > pipToWrist + handScale * 0.2;
+    const isOpen = angle > 155 && tipToMcp > pipToMcp * 1.15;
+    return isOpen && isLongEnough;
   };
 
-  const indexExtended = isExtended(5, 6, 8);
-  const middleExtended = isExtended(9, 10, 12);
-  const ringExtended = isExtended(13, 14, 16);
-  const pinkyExtended = isExtended(17, 18, 20);
+  const indexOut = checkFinger(5, 6, 8);
+  const middleOut = checkFinger(9, 10, 12);
+  const ringOut = checkFinger(13, 14, 16);
+  const pinkyOut = checkFinger(17, 18, 20);
 
-  // Thumb is special (check distance from index base)
-  const thumbDistance = Math.sqrt(
-    Math.pow(landmarks[4].x - landmarks[5].x, 2) + Math.pow(landmarks[4].y - landmarks[5].y, 2),
-  );
-  const thumbExtended = thumbDistance > 0.08;
+  // Thumb is special (angle between thumb tip, thumb base, and index base)
+  const thumbAngle = getAngle(landmarks[4], landmarks[2], landmarks[5]);
+  const thumbToPalm = getDist(landmarks[4], indexBase);
+  const thumbKnuckleToPalm = getDist(landmarks[2], indexBase);
+  const thumbOut = thumbAngle > 30 && thumbToPalm > thumbKnuckleToPalm + handScale * 0.18;
+
+  const indexMiddleGap = getDist(landmarks[8], landmarks[12]) / handScale;
+  const thumbIndexGap = getDist(landmarks[4], landmarks[8]) / handScale;
+  const thumbTipAboveWrist = landmarks[4].y < wrist.y - handScale * 0.15;
+  const thumbTipBelowWrist = landmarks[4].y > wrist.y + handScale * 0.1;
+  const thumbDominant = Math.abs(landmarks[4].x - landmarks[2].x) > handScale * 0.35;
 
   let gesture: string | null = null;
+  let conf = 0;
 
-  // GESTURE LOGIC (PRIORITY ORDER)
-
-  // Open Palm / Hello
-  if (indexExtended && middleExtended && ringExtended && pinkyExtended && thumbExtended) {
-    gesture = "open_palm";
-  }
-  // Peace Sign
-  else if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
+  // 3. GESTURE PROTOTYPE MATCHING
+  
+  // Peace Sign (Index & Middle)
+  if (indexOut && middleOut && !ringOut && !pinkyOut && indexMiddleGap > 0.24) {
     gesture = "peace_sign";
+    conf = 0.9;
   }
-  // Thumbs Up
-  else if (thumbExtended && !indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-    // Verify thumb is pointing UP
-    if (landmarks[4].y < landmarks[3].y) gesture = "thumbs_up";
+  // Thumbs Up (Requires orientation check)
+  else if (thumbOut && !indexOut && !middleOut && !ringOut && !pinkyOut && thumbDominant) {
+    if (metadata.orientation !== "inverted" && thumbTipAboveWrist) {
+       gesture = "thumbs_up";
+       conf = 0.88;
+    } else if (thumbTipBelowWrist) {
+       gesture = "thumbs_down";
+       conf = 0.88;
+    }
   }
-  // Pointing Up
-  else if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-    gesture = "pointing_up";
+  // Open Palm / Hello
+  else if (thumbOut && indexOut && middleOut && ringOut && pinkyOut) {
+    gesture = "open_palm";
+    conf = 0.95;
   }
   // Fist / Stop
-  else if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended && !thumbExtended) {
+  else if (!indexOut && !middleOut && !ringOut && !pinkyOut && !thumbOut) {
     gesture = "fist";
+    conf = 0.9;
+  }
+  // Pointing Up
+  else if (indexOut && !middleOut && !ringOut && !pinkyOut && !thumbOut) {
+    gesture = "pointing_up";
+    conf = 0.86;
   }
   // Love You (🤟)
-  else if (thumbExtended && indexExtended && !middleExtended && !ringExtended && pinkyExtended) {
+  else if (thumbOut && indexOut && !middleOut && !ringOut && pinkyOut) {
     gesture = "love_you";
+    conf = 0.9;
   }
-  // OK Sign
+  // OK Sign (Distance between thumb tip and index tip)
   else {
-    const thumbIndexDist = Math.sqrt(
-      Math.pow(landmarks[4].x - landmarks[8].x, 2) + Math.pow(landmarks[4].y - landmarks[8].y, 2),
-    );
-    if (thumbIndexDist < 0.035 && middleExtended && ringExtended && pinkyExtended) {
+    if (thumbIndexGap < 0.42 && middleOut && ringOut && pinkyOut) {
       gesture = "ok";
+      conf = 0.88;
     }
   }
 
+  const centeringScore = metadata.isCentered ? 1 : 0.7;
+  const distanceScore = metadata.distance === "ideal" ? 1 : 0.82;
+  metadata.confidence = clamp(conf * centeringScore * distanceScore, 0, 1);
   return { gesture, metadata };
 }
 
-/**
- * Utility to draw hand skeleton on canvas for user feedback
- */
 export function drawHand(ctx: CanvasRenderingContext2D, landmarks: HandLandmark[]) {
-  const connections = [
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 4], // Thumb
-    [0, 5],
-    [5, 6],
-    [6, 7],
-    [7, 8], // Index
-    [0, 9],
-    [9, 10],
-    [10, 11],
-    [11, 12], // Middle
-    [0, 13],
-    [13, 14],
-    [14, 15],
-    [15, 16], // Ring
-    [0, 17],
-    [17, 18],
-    [18, 19],
-    [19, 20], // Pinky
-    [5, 9],
-    [9, 13],
-    [13, 17],
-    [0, 17], // Palm
-  ];
+  const outline = [0, 1, 2, 3, 4, 8, 12, 16, 20, 19, 18, 17];
+  const wrist = landmarks[0];
+  const isCentered = wrist.x > 0.3 && wrist.x < 0.7 && wrist.y > 0.2 && wrist.y < 0.8;
 
   ctx.save();
-  ctx.strokeStyle = "#6366f1"; // Indigo 500
-  ctx.lineWidth = 4;
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowBlur = isCentered ? 14 : 8;
+  ctx.shadowColor = "rgba(255, 77, 139, 0.45)";
+  ctx.strokeStyle = isCentered ? "#ff4d8b" : "rgba(255, 255, 255, 0.85)";
+  ctx.lineWidth = isCentered ? 3 : 2;
 
-  // Draw connections
-  for (const [start, end] of connections) {
-    const p1 = landmarks[start];
-    const p2 = landmarks[end];
-    ctx.beginPath();
-    ctx.moveTo(p1.x * ctx.canvas.width, p1.y * ctx.canvas.height);
-    ctx.lineTo(p2.x * ctx.canvas.width, p2.y * ctx.canvas.height);
-    ctx.stroke();
-  }
-
-  // Draw points
-  ctx.fillStyle = "#ffffff";
-  for (const landmark of landmarks) {
-    ctx.beginPath();
-    ctx.arc(landmark.x * ctx.canvas.width, landmark.y * ctx.canvas.height, 5, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  outline.forEach((pointIndex, index) => {
+    const point = landmarks[pointIndex];
+    const x = point.x * ctx.canvas.width;
+    const y = point.y * ctx.canvas.height;
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.closePath();
+  ctx.stroke();
   ctx.restore();
 }

@@ -13,7 +13,6 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "motion/react";
-import { ConversationBar } from "@/components/conversation-bar";
 import { AIInput } from "@/components/ui/smoothui/ai-input";
 import { VoiceInput } from "@/components/ui/smoothui/voice-input";
 import { Orb } from "@/components/ui/orb";
@@ -27,18 +26,32 @@ const MotionBox = motion(Box);
 type Condition = "visual" | "vocal" | "auditory" | "none";
 type Message = { id: string; sender: string; content: string; time: string; modality: string };
 
+function getInitialActiveUser(a: Condition, b: Condition): "A" | "B" {
+  if (a !== "vocal" && b === "vocal") return "B";
+  return "A";
+}
+
 function CommunicateContent() {
   const searchParams = useSearchParams();
   const a = (searchParams.get("a") as Condition) || "none";
   const b = (searchParams.get("b") as Condition) || "none";
   
-  const [activeUser, setActiveUser] = useState<"A" | "B">("A");
+  const [activeUser, setActiveUser] = useState<"A" | "B">(() => getInitialActiveUser(a, b));
   const [agentState, setAgentState] = useState<AgentState>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const currentCondition = activeUser === "A" ? a : b;
 
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const { start: startGestures, stop: stopGestures, isDetecting, detectedGesture } = useGestureDetection(videoRef.current || undefined);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  
+  const { 
+    start: startGestures, 
+    stop: stopGestures, 
+    isDetecting, 
+    detectedGesture, 
+    error: gestureError 
+  } = useGestureDetection(videoElement || undefined, canvasElement || undefined);
+  
   const lastGestureRef = React.useRef<string | null>(null);
 
   useEffect(() => {
@@ -54,12 +67,27 @@ function CommunicateContent() {
   }, [detectedGesture, activeUser]);
 
   useEffect(() => {
-    if (currentCondition === "vocal" && videoRef.current) {
-      startGestures();
+    let isActive = true;
+    
+    if (currentCondition === "vocal" && videoElement) {
+      // Small delay to allow element mounting and prevent rapid start/stop
+      const timer = setTimeout(() => {
+        if (isActive) startGestures();
+      }, 100);
+      return () => {
+        isActive = false;
+        clearTimeout(timer);
+        stopGestures();
+      };
     } else {
       stopGestures();
+      return () => {};
     }
-  }, [currentCondition, startGestures, stopGestures, videoRef.current]);
+  }, [currentCondition, startGestures, stopGestures, videoElement]);
+
+  useEffect(() => {
+    setActiveUser(getInitialActiveUser(a, b));
+  }, [a, b]);
 
   const addMessage = (sender: string, content: string, modality: string) => {
     const newMessage: Message = {
@@ -120,7 +148,6 @@ function CommunicateContent() {
                     <Orb 
                      agentState={agentState} 
                      colors={getConditionColors(currentCondition)} 
-                     className="w-full h-full"
                     />
                  </Box>
                  <Center position="absolute" inset="0" pointerEvents="none">
@@ -168,8 +195,8 @@ function CommunicateContent() {
                    <VStack w="full" gap={6}>
                       <Box 
                         w="full" 
-                        maxW="320px" 
-                        aspectRatio={4/3} 
+                        maxW="480px" 
+                        aspectRatio={16/9} 
                         bg="primary" 
                         rounded="clay-md" 
                         overflow="hidden"
@@ -178,24 +205,34 @@ function CommunicateContent() {
                         borderColor="hairline"
                       >
                          <video 
-                           ref={videoRef}
+                           ref={setVideoElement}
                            autoPlay 
                            playsInline 
                            muted 
-                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                           style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} 
+                         />
+                         <canvas
+                           ref={setCanvasElement}
+                           width={640}
+                           height={360}
+                           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
                          />
                          {!isDetecting && (
-                            <Center position="absolute" inset="0" bg="primary" color="white">
+                            <Center position="absolute" inset="0" bg="primary/40" backdropFilter="blur(4px)" color="white">
                                <VStack gap={2}>
-                                  <Hand size={24} strokeWidth={1.5} opacity={0.5} />
-                                  <Text fontSize="xs" fontWeight="600">Initializing recognition...</Text>
+                                  <Hand size={24} strokeWidth={1.5} opacity={0.8} />
+                                  <Text fontSize="xs" fontWeight="600" textShadow="0 2px 4px rgba(0,0,0,0.3)">
+                                    {gestureError ? "Camera Error" : "Initializing..."}
+                                  </Text>
                                </VStack>
                             </Center>
                          )}
                       </Box>
                       <HStack gap={4}>
-                         <Box w={2} h={2} rounded="full" bg="brand-teal" />
-                         <Text fontSize="xs" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">Gesture active</Text>
+                         <Box w={2} h={2} rounded="full" bg={gestureError ? "brand-pink" : "success"} />
+                         <Text fontSize="xs" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">
+                           {gestureError ? `Error: ${gestureError}` : "Surgical Bridge Active"}
+                         </Text>
                       </HStack>
                    </VStack>
                 ) : currentCondition === "visual" ? (
@@ -213,7 +250,7 @@ function CommunicateContent() {
 
 export default function CommunicatePage() {
   return (
-    <Suspense fallback={<Center h="full"><Text>Loading bridge...</Text></Center>}>
+    <Suspense fallback={<Center h="full"><Text>Establishing bridge...</Text></Center>}>
       <CommunicateContent />
     </Suspense>
   );

@@ -1,64 +1,75 @@
 import type { SpeechToTextProvider, TranslationResult } from "./index";
 
 export interface SpeechRecognizerOptions {
-  apiUrl: string;
+  apiUrl?: string;
+  continuous?: boolean;
+  interimResults?: boolean;
+  language?: string;
 }
 
-export function createSpeechRecognizer(options: SpeechRecognizerOptions): SpeechToTextProvider {
-  let mediaRecorder: MediaRecorder | null = null;
-  let audioChunks: Blob[] = [];
+export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): SpeechToTextProvider {
+  let recognition: any = null;
+  let isStarted = false;
 
   let resultCallback: (result: TranslationResult) => void = () => {};
   let errorCallback: (error: Error) => void = () => {};
   let endCallback: () => void = () => {};
 
+  const initNative = () => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = options.continuous ?? false;
+      recognition.interimResults = options.interimResults ?? false;
+      recognition.lang = options.language ?? "en-US";
+
+      recognition.onresult = (event: any) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript;
+        const confidence = event.results[last][0].confidence;
+
+        resultCallback({
+          text,
+          confidence,
+          timestamp: Date.now(),
+        });
+      };
+
+      recognition.onerror = (event: any) => {
+        errorCallback(new Error(event.error));
+      };
+
+      recognition.onend = () => {
+        isStarted = false;
+        endCallback();
+      };
+    }
+  };
+
   const start = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
+    if (isStarted) return;
+    
+    if (!recognition) {
+      initNative();
+    }
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunks.push(event.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-        try {
-          const formData = new FormData();
-          formData.append("audio", audioBlob, "audio.webm");
-
-          const response = await fetch(options.apiUrl, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (!response.ok) throw new Error("API error: " + response.statusText);
-
-          const data = (await response.json()) as { text: string; confidence?: number };
-
-          resultCallback({
-            text: data.text,
-            confidence: data.confidence ?? 1.0,
-            timestamp: Date.now(),
-          });
-        } catch (error) {
-          errorCallback(error as Error);
-        } finally {
-          endCallback();
-          stream.getTracks().forEach((track) => track.stop());
-        }
-      };
-
-      mediaRecorder.start();
-    } catch (error) {
-      errorCallback(error as Error);
+    if (recognition) {
+      recognition.start();
+      isStarted = true;
+    } else if (options.apiUrl) {
+      // Fallback to custom API implementation if native is unavailable
+      console.warn("Native SpeechRecognition not supported, custom API fallback not fully implemented in this version.");
+    } else {
+      errorCallback(new Error("Speech recognition not supported in this browser."));
     }
   };
 
   const stop = () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
+    if (recognition && isStarted) {
+      recognition.stop();
+      isStarted = false;
     }
   };
 
@@ -76,3 +87,4 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions): Speech
     },
   };
 }
+

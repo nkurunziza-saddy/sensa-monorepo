@@ -1,5 +1,5 @@
 import { GESTURE_MAPPINGS } from "./gestures";
-import { detectGesture, drawHand, type DetectionMetadata } from "./hand-gestures";
+import { detectGesture, drawHand, type DetectionMetadata, type HandLandmark } from "./hand-gestures";
 import type { Results } from "@mediapipe/hands";
 import type { GestureProvider } from "./index";
 
@@ -17,23 +17,37 @@ export function createGestureDetector(options: GestureDetectorOptions): Enhanced
   let stream: MediaStream | null = null;
   let hands: any = null;
   let animationFrameId: number | null = null;
-
+  
   let gestureCallback: (gesture: string, phrase: string, confidence: number) => void = () => {};
   let metadataCallback: (metadata: DetectionMetadata) => void = () => {};
   let errorCallback: (err: Error) => void = () => {};
 
-  // Debouncing & Smoothing logic
-  let lastGesture: string | null = null;
-  let gestureCount = 0;
-  const CONFIRMATION_THRESHOLD = 6;
+  // --- PERFECT STABILITY ENGINE ---
+  const WINDOW_SIZE = 6; 
+  const CONSENSUS_THRESHOLD = 4; 
+  let gestureWindow: string[] = [];
+  let lastEmittedGesture: string | null = null;
+  let lastProcessTime = 0;
+  const FRAME_THROTTLE = 16; 
 
-  const runDetection = async () => {
-    if (!active || !hands || !options.videoElement) return;
+  // Landmark Smoothing (Exponential Moving Average)
+  let smoothedLandmarks: HandLandmark[] | null = null;
+  const SMOOTHING_FACTOR = 0.35; 
 
-    if (options.videoElement.readyState >= 2) {
-      await hands.send({ image: options.videoElement });
+  const runDetection = async (time: number) => {
+    if (!active || !options.videoElement) return;
+    
+    // Process MediaPipe only if hands are ready and element is loaded
+    if (hands && time - lastProcessTime > FRAME_THROTTLE && options.videoElement.readyState >= 2) {
+      try {
+        await hands.send({ image: options.videoElement });
+        lastProcessTime = time;
+      } catch (err) {
+        console.error("MediaPipe inference error:", err);
+      }
     }
-
+    
+    // Always reschedule for smooth camera preview and drawing
     animationFrameId = requestAnimationFrame(runDetection);
   };
 
@@ -42,65 +56,7 @@ export function createGestureDetector(options: GestureDetectorOptions): Enhanced
     active = true;
 
     try {
-      // 1. Initialize MediaPipe
-      const { Hands } = await import("@mediapipe/hands");
-      hands = new Hands({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-      });
-
-      hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.6,
-        minTrackingConfidence: 0.6,
-      });
-
-      hands.onResults((results: Results) => {
-        if (!active) return;
-
-        // --- DRAWING ---
-        const canvasCtx = options.canvasElement?.getContext("2d");
-        if (canvasCtx && options.canvasElement) {
-          canvasCtx.clearRect(0, 0, options.canvasElement.width, options.canvasElement.height);
-          canvasCtx.save();
-          canvasCtx.scale(-1, 1);
-          canvasCtx.translate(-options.canvasElement.width, 0);
-          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            drawHand(canvasCtx, results.multiHandLandmarks[0]);
-          }
-          canvasCtx.restore();
-        }
-
-        // --- DETECTION ---
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-          const landmarks = results.multiHandLandmarks[0];
-          const { gesture: gestureId, metadata } = detectGesture(landmarks);
-          metadataCallback(metadata);
-
-          if (gestureId) {
-            if (gestureId === lastGesture) {
-              gestureCount++;
-              if (gestureCount === CONFIRMATION_THRESHOLD) {
-                const mapping = GESTURE_MAPPINGS.find((m) => m.gesture === gestureId);
-                if (mapping) gestureCallback(mapping.gesture, mapping.phrase, 0.95);
-                gestureCount = 0;
-              }
-            } else {
-              lastGesture = gestureId;
-              gestureCount = 0;
-            }
-          } else {
-            lastGesture = null;
-            gestureCount = 0;
-          }
-        } else {
-          metadataCallback({ handFound: false, isCentered: false, distance: "ideal", score: 0 });
-          lastGesture = null;
-          gestureCount = 0;
-        }
-      });
-
-      // 2. Manual Camera Access (More reliable)
+      // 1. Manual Camera Access (Immediate feedback)
       if (options.videoElement) {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -109,13 +65,101 @@ export function createGestureDetector(options: GestureDetectorOptions): Enhanced
             facingMode: "user",
           },
         });
+
+        if (!active) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
         options.videoElement.srcObject = stream;
         await options.videoElement.play();
-
-        // Start detection loop
-        runDetection();
       }
-    } catch (err) {
+
+      // Start loop early for smooth camera preview even before MediaPipe loads
+      runDetection(0);
+
+      // 2. Initialize MediaPipe (Background load)
+      const { Hands } = await import("@mediapipe/hands");
+      hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 1, 
+        modelComplexity: 1, 
+        minDetectionConfidence: 0.75, 
+        minTrackingConfidence: 0.75
+      });
+
+      hands.onResults((results: Results) => {
+        if (!active) return;
+        
+        const rawLandmarks = results.multiHandLandmarks?.[0];
+
+        // Landmark Smoothing Engine
+        if (rawLandmarks) {
+          if (!smoothedLandmarks) {
+            smoothedLandmarks = [...rawLandmarks];
+          } else {
+            smoothedLandmarks = smoothedLandmarks.map((prev, i) => ({
+              x: prev.x + (rawLandmarks[i].x - prev.x) * SMOOTHING_FACTOR,
+              y: prev.y + (rawLandmarks[i].y - prev.y) * SMOOTHING_FACTOR,
+              z: prev.z + (rawLandmarks[i].z - prev.z) * SMOOTHING_FACTOR,
+            }));
+          }
+        } else {
+          smoothedLandmarks = null;
+        }
+
+        // High-Fidelity Feedback Drawing
+        const canvasCtx = options.canvasElement?.getContext("2d");
+        if (canvasCtx && options.canvasElement) {
+           canvasCtx.clearRect(0, 0, options.canvasElement.width, options.canvasElement.height);
+           if (smoothedLandmarks) {
+             canvasCtx.save();
+             canvasCtx.scale(-1, 1);
+             canvasCtx.translate(-options.canvasElement.width, 0);
+             drawHand(canvasCtx, smoothedLandmarks);
+             canvasCtx.restore();
+           }
+        }
+
+        // Surgical Intent Matching
+        if (smoothedLandmarks) {
+          const { gesture, metadata } = detectGesture(smoothedLandmarks);
+          metadataCallback(metadata);
+          
+          if (gesture) {
+            gestureWindow.push(gesture);
+            if (gestureWindow.length > WINDOW_SIZE) gestureWindow.shift();
+
+            const counts = gestureWindow.reduce((acc, g) => {
+              acc[g] = (acc[g] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>);
+
+            const [bestGesture, count] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+
+            if (count >= CONSENSUS_THRESHOLD && bestGesture !== lastEmittedGesture) {
+              const mapping = GESTURE_MAPPINGS.find(m => m.gesture === bestGesture);
+              if (mapping) {
+                gestureCallback(mapping.gesture, mapping.phrase, count / WINDOW_SIZE);
+                lastEmittedGesture = bestGesture;
+                gestureWindow = []; 
+                setTimeout(() => { lastEmittedGesture = null; }, 1200);
+              }
+            }
+          }
+        } else {
+          metadataCallback({ handFound: false, isCentered: false, distance: "ideal", orientation: "upright", confidence: 0 });
+          gestureWindow = [];
+        }
+      });
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log("Gesture detector start aborted (likely stopped during init).");
+        return;
+      }
       console.error("Gesture Detector Start Error:", err);
       errorCallback(err as Error);
       active = false;
@@ -124,42 +168,22 @@ export function createGestureDetector(options: GestureDetectorOptions): Enhanced
 
   const stop = () => {
     active = false;
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      stream = null;
-    }
-    if (hands) {
-      hands.close();
-      hands = null;
-    }
-    if (options.videoElement) {
-      options.videoElement.srcObject = null;
-    }
+    smoothedLandmarks = null;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    if (hands) hands.close();
+    if (options.videoElement) options.videoElement.srcObject = null;
   };
 
   const simulateGesture = (gestureId: string) => {
     const mapping = GESTURE_MAPPINGS.find((m) => m.gesture === gestureId);
-    if (mapping) {
-      gestureCallback(mapping.gesture, mapping.phrase, 1.0);
-    }
+    if (mapping) gestureCallback(mapping.gesture, mapping.phrase, 1.0);
   };
 
-  return {
-    start,
-    stop,
-    onGesture: (cb) => {
-      gestureCallback = cb;
-    },
-    onMetadata: (cb) => {
-      metadataCallback = cb;
-    },
-    onError: (cb) => {
-      errorCallback = cb;
-    },
-    simulateGesture,
+  return { 
+    start, stop, simulateGesture,
+    onGesture: (cb) => { gestureCallback = cb; },
+    onMetadata: (cb) => { metadataCallback = cb; },
+    onError: (cb) => { errorCallback = cb; }
   };
 }

@@ -8,15 +8,20 @@
     "start": "next start"
   },
   "dependencies": {
-    "@sensa-monorepo/communication": "workspace:*",
+    "@chakra-ui/react": "^3.35.0",
+    "@emotion/react": "^11.14.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@sensa-monorepo/env": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "^1.11.0",
+    "motion": "^12.38.0",
     "next": "^16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^3.5.0",
-    "motion": "^12.38.0"
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@sensa-monorepo/config": "workspace:*",
@@ -24,6 +29,7 @@
     "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.0",
     "tailwindcss": "^4.2.4",
     "typescript": "^5"
   }
