@@ -1,0 +1,27 @@
+{
+  "name": "@sensa-monorepo/auth",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.6.9",
+    "@sensa-monorepo/db": "workspace:*",
+    "@sensa-monorepo/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sensa-monorepo/config": "workspace:*",
+    "typescript": "^6.0.3"
+  }
+}

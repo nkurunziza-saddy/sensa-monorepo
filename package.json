@@ -1,0 +1,56 @@
+{
+  "name": "sensa-monorepo",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.4.2",
+      "zod": "^4.3.6",
+      "@types/node": "^25.6.0",
+      "@cloudflare/workers-types": "^4.20260426.1",
+      "hono": "^4.12.15",
+      "@trpc/server": "^11.16.0",
+      "better-auth": "^1.6.9",
+      "valibot": "^1.3.1",
+      "alchemy": "^0.93.2",
+      "vitest": "^4.1.5",
+      "@vitest/ui": "^4.1.5",
+      "@vitest/coverage-v8": "^4.1.5",
+      "jsdom": "^29.1.0",
+      "@trpc/client": "^11.16.0"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @sensa-monorepo/db db:push",
+    "db:studio": "turbo -F @sensa-monorepo/db db:studio",
+    "db:generate": "turbo -F @sensa-monorepo/db db:generate",
+    "db:migrate": "turbo -F @sensa-monorepo/db db:migrate",
+    "check": "oxlint && oxfmt --write"
+  },
+  "dependencies": {
+    "@sensa-monorepo/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@sensa-monorepo/config": "workspace:*",
+    "@types/node": "catalog:",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
+    "turbo": "^2.9.6",
+    "typescript": "^6.0.3",
+    "vercel": "^52.0.0"
+  },
+  "packageManager": "bun@1.3.11"
+}

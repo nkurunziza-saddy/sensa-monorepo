@@ -1,0 +1,32 @@
+{
+  "name": "@sensa-monorepo/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@sensa-monorepo/auth": "workspace:*",
+    "@sensa-monorepo/db": "workspace:*",
+    "@sensa-monorepo/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "valibot": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sensa-monorepo/config": "workspace:*",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
+    "jsdom": "catalog:",
+    "typescript": "^6.0.3",
+    "vitest": "catalog:"
+  }
+}
