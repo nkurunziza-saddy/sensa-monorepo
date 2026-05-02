@@ -10,21 +10,22 @@ export const communicationRouter = router({
     .input(z.object({ title: z.string().optional() }).optional())
     .mutation(async ({ input }) => {
       const id = nanoid();
-      const [newConversation] = await db.insert(conversation).values({
-        id,
-        title: input?.title,
-      }).returning();
+      const [newConversation] = await db
+        .insert(conversation)
+        .values({
+          id,
+          title: input?.title,
+        })
+        .returning();
       return newConversation;
     }),
 
-  getConversation: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
-      const result = await db.query.conversation.findFirst({
-        where: eq(conversation.id, input.id),
-      });
-      return result;
-    }),
+  getConversation: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    const result = await db.query.conversation.findFirst({
+      where: eq(conversation.id, input.id),
+    });
+    return result;
+  }),
 
   addMessage: publicProcedure
     .input(
@@ -34,18 +35,21 @@ export const communicationRouter = router({
         outputModality: z.enum(["text", "audio", "haptic"]),
         content: z.string(),
         confidence: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const id = nanoid();
-      const [newMessage] = await db.insert(message).values({
-        id,
-        conversationId: input.conversationId,
-        inputModality: input.inputModality,
-        outputModality: input.outputModality,
-        content: input.content,
-        confidence: input.confidence,
-      }).returning();
+      const [newMessage] = await db
+        .insert(message)
+        .values({
+          id,
+          conversationId: input.conversationId,
+          inputModality: input.inputModality,
+          outputModality: input.outputModality,
+          content: input.content,
+          confidence: input.confidence,
+        })
+        .returning();
       return newMessage;
     }),
 

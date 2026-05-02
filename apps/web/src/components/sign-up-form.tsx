@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import * as v from "valibot";
 import { authClient } from "@/lib/auth-client";
 import Loader from "./loader";
-import { Box, Heading, VStack, Input, Button, Text, Field } from "@chakra-ui/react";
+import { Box, Heading, VStack, Input, Button, Field } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 
 export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
@@ -50,8 +50,19 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <Box maxW="md" mx="auto" mt="10" p="6" bg="bg.panel" borderWidth="1px" rounded="3xl" boxShadow="xl">
-      <Heading size="3xl" textAlign="center" mb="6">Create Account</Heading>
+    <Box
+      maxW="md"
+      mx="auto"
+      mt="10"
+      p="6"
+      bg="bg.panel"
+      borderWidth="1px"
+      rounded="3xl"
+      boxShadow="xl"
+    >
+      <Heading size="3xl" textAlign="center" mb="6">
+        Create Account
+      </Heading>
 
       <form
         onSubmit={(e) => {
@@ -148,4 +159,3 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
     </Box>
   );
 }
-

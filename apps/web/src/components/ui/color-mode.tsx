@@ -1,40 +1,38 @@
-"use client"
+"use client";
 
-import type { IconButtonProps } from "@chakra-ui/react"
-import { IconButton } from "@chakra-ui/react"
-import { ThemeProvider, useTheme } from "next-themes"
-import type { ThemeProviderProps } from "next-themes"
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
+import type { IconButtonProps } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
+import { ThemeProvider, useTheme } from "next-themes";
+import type { ThemeProviderProps } from "next-themes";
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
 
 export interface ColorModeProviderProps extends ThemeProviderProps {}
 
 export function ColorModeProvider(props: ColorModeProviderProps) {
-  return (
-    <ThemeProvider attribute="class" disableTransitionOnChange {...props} />
-  )
+  return <ThemeProvider attribute="class" disableTransitionOnChange {...props} />;
 }
 
 export function useColorMode() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme();
   const toggleColorMode = () => {
-    setTheme(resolvedTheme === "light" ? "dark" : "light")
-  }
+    setTheme(resolvedTheme === "light" ? "dark" : "light");
+  };
   return {
     colorMode: resolvedTheme,
     setColorMode: setTheme,
     toggleColorMode,
-  }
+  };
 }
 
 export function useColorModeValue<T>(light: T, dark: T) {
-  const { colorMode } = useColorMode()
-  return colorMode === "light" ? light : dark
+  const { colorMode } = useColorMode();
+  return colorMode === "light" ? light : dark;
 }
 
 export const ColorModeButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   function ColorModeButton(props, ref) {
-    const { toggleColorMode } = useColorMode()
+    const { toggleColorMode } = useColorMode();
     return (
       <IconButton
         onClick={toggleColorMode}
@@ -46,21 +44,21 @@ export const ColorModeButton = React.forwardRef<HTMLButtonElement, IconButtonPro
       >
         <ColorModeIcon />
       </IconButton>
-    )
+    );
   },
-)
+);
 
 export function ColorModeIcon() {
-  const { colorMode } = useColorMode()
-  const [mounted, setMounted] = React.useState(false)
+  const { colorMode } = useColorMode();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <span style={{ width: 20, height: 20, display: "inline-block" }} />
+    return <span style={{ width: 20, height: 20, display: "inline-block" }} />;
   }
 
-  return colorMode === "light" ? <Sun size={20} /> : <Moon size={20} />
+  return colorMode === "light" ? <Sun size={20} /> : <Moon size={20} />;
 }

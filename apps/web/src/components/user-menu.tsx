@@ -2,12 +2,7 @@
 
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  MenuContent,
-  MenuItem,
-  MenuRoot,
-  MenuTrigger,
-} from "@/components/ui/menu"; // I need to create this Chakra v3 snippet-like component
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "@/components/ui/menu"; // I need to create this Chakra v3 snippet-like component
 import { authClient } from "@/lib/auth-client";
 import { Button, Skeleton, Text } from "@chakra-ui/react";
 
@@ -36,7 +31,9 @@ export default function UserMenu() {
       </MenuTrigger>
       <MenuContent>
         <MenuItem value="email" disabled>
-          <Text fontSize="sm" color="fg.muted">{session.user.email}</Text>
+          <Text fontSize="sm" color="fg.muted">
+            {session.user.email}
+          </Text>
         </MenuItem>
         <MenuItem
           value="sign-out"
@@ -58,4 +55,3 @@ export default function UserMenu() {
     </MenuRoot>
   );
 }
-

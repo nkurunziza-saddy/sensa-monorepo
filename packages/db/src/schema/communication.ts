@@ -15,7 +15,7 @@ export const message = pgTable("message", {
   conversationId: text("conversation_id")
     .notNull()
     .references(() => conversation.id, { onDelete: "cascade" }),
-  inputModality: text("input_modality").notNull(), 
+  inputModality: text("input_modality").notNull(),
   outputModality: text("output_modality").notNull(),
   content: text("content").notNull(),
   confidence: real("confidence"),

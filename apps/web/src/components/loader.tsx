@@ -7,4 +7,3 @@ export default function Loader() {
     </Center>
   );
 }
-

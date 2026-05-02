@@ -24,13 +24,23 @@ export default function Home() {
 
   return (
     <Container maxW="3xl" px="4" py="8">
-      <Box as="pre" overflowX="auto" fontFamily="mono" fontSize="xs" mb="8" color="indigo.600" _dark={{ color: "indigo.400" }}>
+      <Box
+        as="pre"
+        overflowX="auto"
+        fontFamily="mono"
+        fontSize="xs"
+        mb="8"
+        color="indigo.600"
+        _dark={{ color: "indigo.400" }}
+      >
         {TITLE_TEXT}
       </Box>
-      
+
       <VStack gap="6" align="stretch">
         <Box borderWidth="1px" p="6" rounded="2xl" bg="bg.panel" boxShadow="sm">
-          <Heading size="md" mb="4">API Status</Heading>
+          <Heading size="md" mb="4">
+            API Status
+          </Heading>
           <Flex align="center" gap="3">
             <Box
               h="3"
@@ -49,12 +59,22 @@ export default function Home() {
           </Flex>
         </Box>
 
-        <Center p="12" borderWidth="1px" borderStyle="dashed" rounded="3xl" flexDirection="column" gap="4">
-          <Heading size="lg" textAlign="center">Ready to Communicate?</Heading>
-          <Text color="fg.muted" textAlign="center">Navigate to Talk, Reply, or Gesture using the header above.</Text>
+        <Center
+          p="12"
+          borderWidth="1px"
+          borderStyle="dashed"
+          rounded="3xl"
+          flexDirection="column"
+          gap="4"
+        >
+          <Heading size="lg" textAlign="center">
+            Ready to Communicate?
+          </Heading>
+          <Text color="fg.muted" textAlign="center">
+            Navigate to Talk, Reply, or Gesture using the header above.
+          </Text>
         </Center>
       </VStack>
     </Container>
   );
 }
-

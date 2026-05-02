@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button, type ButtonProps } from "@chakra-ui/react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { Button, type ButtonProps } from "@chakra-ui/react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-2xl font-medium transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -25,19 +25,18 @@ const buttonVariants = cva(
       active: {
         true: "ring-4 ring-indigo-500 scale-95",
         false: "",
-      }
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
       active: false,
     },
-  }
-)
+  },
+);
 
-export interface LargeButtonProps 
-  extends Omit<ButtonProps, "variant" | "size">, 
-    VariantProps<typeof buttonVariants> {}
+export interface LargeButtonProps
+  extends Omit<ButtonProps, "variant" | "size">, VariantProps<typeof buttonVariants> {}
 
 export const LargeButton = React.forwardRef<HTMLButtonElement, LargeButtonProps>(
   ({ className, variant, size, active, ...props }, ref) => {
@@ -48,9 +47,8 @@ export const LargeButton = React.forwardRef<HTMLButtonElement, LargeButtonProps>
         unstyled // Use unstyled to let CVA/Tailwind handle it, or keep it to mix.
         {...props}
       />
-    )
-  }
-)
+    );
+  },
+);
 
-LargeButton.displayName = "LargeButton"
-
+LargeButton.displayName = "LargeButton";

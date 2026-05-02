@@ -23,22 +23,22 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         try {
           const formData = new FormData();
-          formData.append('audio', audioBlob, 'audio.webm');
+          formData.append("audio", audioBlob, "audio.webm");
           const response = await fetch(apiUrl, {
-            method: 'POST',
+            method: "POST",
             body: formData,
           });
-          if (!response.ok) throw new Error('API error: ' + response.statusText);
-          const data = await response.json() as { text: string; confidence?: number };
+          if (!response.ok) throw new Error("API error: " + response.statusText);
+          const data = (await response.json()) as { text: string; confidence?: number };
           options.onResult(data.text, data.confidence);
         } catch (error) {
           options.onError(error as Error);
         } finally {
           options.onEnd();
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach((track) => track.stop());
         }
       };
 
@@ -49,7 +49,7 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
   };
 
   const stop = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     }
   };

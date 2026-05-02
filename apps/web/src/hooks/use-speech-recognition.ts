@@ -7,17 +7,20 @@ export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
-  
+
   // Track recognizer instance to stop it
   const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer> | null>(null);
-  
+
   const { hapticFeedback } = useAccessibilitySettings();
 
-  const vibrate = useCallback((pattern: number | number[]) => {
-    if (hapticFeedback && "vibrate" in navigator) {
-      navigator.vibrate(pattern);
-    }
-  }, [hapticFeedback]);
+  const vibrate = useCallback(
+    (pattern: number | number[]) => {
+      if (hapticFeedback && "vibrate" in navigator) {
+        navigator.vibrate(pattern);
+      }
+    },
+    [hapticFeedback],
+  );
 
   const start = useCallback(() => {
     setError(null);
@@ -36,7 +39,7 @@ export function useSpeechRecognition() {
       },
       onEnd: () => {
         setIsListening(false);
-      }
+      },
     });
 
     recognizerRef.current = recognizer;

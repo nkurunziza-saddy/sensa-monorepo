@@ -6,22 +6,36 @@ import { trpc } from "@/utils/trpc";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
-import { useGestureDetection } from "@/hooks/use-gesture-detection";
 import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
 import { LargeButton } from "@/components/ui/large-button";
 import { Mic, MessageSquare, Hand, Volume2, Square, Send } from "lucide-react";
-import { Container, VStack, Heading, Text, Box, Flex, IconButton, Input, Tabs, Center } from "@chakra-ui/react";
+import {
+  Container,
+  VStack,
+  Heading,
+  Text,
+  Box,
+  Flex,
+  IconButton,
+  Input,
+  Tabs,
+  Center,
+} from "@chakra-ui/react";
 
 export default function CommunicatePage() {
   const [activeTab, setActiveTab] = useState<string>("text");
   const [textInput, setTextInput] = useState("");
-  
+
   const conversationId = "default-conversation";
-  
-  const { data: messages, refetch } = useQuery(trpc.communication.listMessages.queryOptions({ conversationId }));
-  const addMessage = useMutation(trpc.communication.addMessage.mutationOptions({
-    onSuccess: () => refetch(),
-  }));
+
+  const { data: messages, refetch } = useQuery(
+    trpc.communication.listMessages.queryOptions({ conversationId }),
+  );
+  const addMessage = useMutation(
+    trpc.communication.addMessage.mutationOptions({
+      onSuccess: () => refetch(),
+    }),
+  );
 
   const { isListening, start: startSTT, stop: stopSTT } = useSpeechRecognition();
   const handleSTTStart = () => {
@@ -29,7 +43,7 @@ export default function CommunicatePage() {
   };
 
   const { speak } = useSpeechSynthesis();
-  const { autoReadMessages } = useAccessibilitySettings();
+  useAccessibilitySettings();
 
   const handleSendText = () => {
     if (!textInput.trim()) return;
@@ -46,27 +60,29 @@ export default function CommunicatePage() {
     <Container maxW="4xl" py="8" h="full" display="flex" flexDirection="column" gap="6">
       <Flex align="center" gap="4" borderBottomWidth="1px" pb="4">
         <MessageSquare size={32} color="indigo.600" />
-        <Heading size="3xl" fontWeight="bold" letterSpacing="tight">Unified Chat</Heading>
+        <Heading size="3xl" fontWeight="bold" letterSpacing="tight">
+          Unified Chat
+        </Heading>
       </Flex>
 
       {/* Chat History */}
-      <Box 
-        flex="1" 
-        overflowY="auto" 
-        rounded="3xl" 
-        borderWidth="1px" 
-        bg="bg.panel" 
-        p={{ base: "4", md: "6" }} 
+      <Box
+        flex="1"
+        overflowY="auto"
+        rounded="3xl"
+        borderWidth="1px"
+        bg="bg.panel"
+        p={{ base: "4", md: "6" }}
         boxShadow="sm"
       >
         <VStack gap="4" align="stretch">
           {messages?.map((msg) => (
-            <Box 
-              key={msg.id} 
-              maxW="80%" 
-              p="4" 
-              rounded="2xl" 
-              bg="bg.muted" 
+            <Box
+              key={msg.id}
+              maxW="80%"
+              p="4"
+              rounded="2xl"
+              bg="bg.muted"
               animation="slide-in-from-bottom-2 0.3s ease-out"
             >
               <Flex align="center" gap="2" fontSize="sm" color="fg.muted" mb="2">
@@ -77,9 +93,9 @@ export default function CommunicatePage() {
               </Flex>
               <Text fontSize="xl">{msg.content}</Text>
               <Flex justify="flex-end" mt="2">
-                <IconButton 
-                  variant="ghost" 
-                  rounded="full" 
+                <IconButton
+                  variant="ghost"
+                  rounded="full"
                   size="sm"
                   aria-label="Read message aloud"
                   onClick={() => speak(msg.content)}
@@ -144,7 +160,9 @@ export default function CommunicatePage() {
               >
                 {isListening ? <Square size={48} fill="currentColor" /> : <Mic size={48} />}
               </LargeButton>
-              <Text mt="4" color="fg.muted">{isListening ? "Listening..." : "Tap to speak"}</Text>
+              <Text mt="4" color="fg.muted">
+                {isListening ? "Listening..." : "Tap to speak"}
+              </Text>
             </Center>
           </Tabs.Content>
 
@@ -153,9 +171,13 @@ export default function CommunicatePage() {
               <Hand size={64} style={{ opacity: 0.5 }} />
               <Text fontSize="lg">
                 For gesture input, please use the dedicated{" "}
-                <NextLink href="/gesture" style={{ color: "var(--chakra-colors-indigo-600)", textDecoration: "underline" }}>
+                <NextLink
+                  href="/gesture"
+                  style={{ color: "var(--chakra-colors-indigo-600)", textDecoration: "underline" }}
+                >
                   Gesture page
-                </NextLink>.
+                </NextLink>
+                .
               </Text>
             </Center>
           </Tabs.Content>
@@ -164,4 +186,3 @@ export default function CommunicatePage() {
     </Container>
   );
 }
-

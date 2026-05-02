@@ -29,6 +29,6 @@ export const useAccessibilitySettings = create<AccessibilityStore>()(
     }),
     {
       name: "accessibility-settings",
-    }
-  )
+    },
+  ),
 );

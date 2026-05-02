@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.67",
+    "@ai-sdk/groq": "^3.0.38",
     "@hono/trpc-server": "^0.4.2",
     "@sensa-monorepo/api": "workspace:*",
     "@sensa-monorepo/auth": "workspace:*",

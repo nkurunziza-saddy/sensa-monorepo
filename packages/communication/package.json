@@ -2,8 +2,12 @@
   "name": "@sensa-monorepo/communication",
   "type": "module",
   "exports": {
-    ".": { "default": "./src/index.ts" },
-    "./*": { "default": "./src/*.ts" }
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
   },
   "dependencies": {
     "zod": "catalog:"
