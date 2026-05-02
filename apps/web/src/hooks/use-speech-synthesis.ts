@@ -24,7 +24,7 @@ export function useSpeechSynthesis() {
       vibrate(50);
 
       const synthesizer = createSpeechSynthesizer({
-        apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/text-to-speech`
+        apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/text-to-speech`,
       });
 
       synthesizer.onStart(() => setIsSpeaking(true));

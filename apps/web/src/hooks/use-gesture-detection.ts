@@ -3,12 +3,16 @@ import { createGestureDetector, GESTURE_MAPPINGS } from "@sensa-monorepo/communi
 import type { DetectionMetadata } from "@sensa-monorepo/communication/hand-gestures";
 import { useAccessibilitySettings } from "./use-accessibility-settings";
 
-export function useGestureDetection(videoElement?: HTMLVideoElement) {
+export function useGestureDetection(
+  videoElement?: HTMLVideoElement,
+  canvasElement?: HTMLCanvasElement,
+) {
   const [isDetecting, setIsDetecting] = useState(false);
   const [metadata, setMetadata] = useState<DetectionMetadata>({
     handFound: false,
     isCentered: false,
     distance: "ideal",
+    score: 0,
   });
   const [detectedGesture, setDetectedGesture] = useState<{
     gesture: string;
@@ -36,6 +40,7 @@ export function useGestureDetection(videoElement?: HTMLVideoElement) {
 
     const detector = createGestureDetector({
       videoElement,
+      canvasElement,
     });
 
     detector.onGesture((gesture, phrase, confidence) => {
@@ -69,7 +74,7 @@ export function useGestureDetection(videoElement?: HTMLVideoElement) {
       setError((err as Error).message);
       setIsDetecting(false);
     }
-  }, [videoElement, vibrate]);
+  }, [videoElement, canvasElement, vibrate]);
 
   const stop = useCallback(() => {
     if (detectorRef.current) {
@@ -77,7 +82,7 @@ export function useGestureDetection(videoElement?: HTMLVideoElement) {
       detectorRef.current = null;
     }
     setIsDetecting(false);
-    setMetadata({ handFound: false, isCentered: false, distance: "ideal" });
+    setMetadata({ handFound: false, isCentered: false, distance: "ideal", score: 0 });
   }, []);
 
   const simulateGesture = useCallback((gestureId: string) => {

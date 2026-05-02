@@ -25,7 +25,7 @@ export function useSpeechRecognition() {
     vibrate(50);
 
     const recognizer = createSpeechRecognizer({
-      apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/speech-to-text`
+      apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/speech-to-text`,
     });
 
     recognizer.onResult((res) => {
@@ -57,5 +57,9 @@ export function useSpeechRecognition() {
     vibrate(50);
   }, [vibrate]);
 
-  return { isListening, transcript, error, start, stop };
+  const resetTranscript = useCallback(() => {
+    setTranscript("");
+  }, []);
+
+  return { isListening, transcript, error, start, stop, resetTranscript };
 }

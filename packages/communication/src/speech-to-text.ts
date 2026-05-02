@@ -4,10 +4,10 @@ export interface SpeechRecognizerOptions {
   apiUrl: string;
 }
 
-export function createSpeechRecognizer(options: SpeechRecognizerOptions): SpeechToTextProvider & { onEnd: (cb: () => void) => void } {
+export function createSpeechRecognizer(options: SpeechRecognizerOptions): SpeechToTextProvider {
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
-  
+
   let resultCallback: (result: TranslationResult) => void = () => {};
   let errorCallback: (error: Error) => void = () => {};
   let endCallback: () => void = () => {};
@@ -27,20 +27,20 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions): Speech
         try {
           const formData = new FormData();
           formData.append("audio", audioBlob, "audio.webm");
-          
+
           const response = await fetch(options.apiUrl, {
             method: "POST",
             body: formData,
           });
 
           if (!response.ok) throw new Error("API error: " + response.statusText);
-          
+
           const data = (await response.json()) as { text: string; confidence?: number };
-          
+
           resultCallback({
             text: data.text,
             confidence: data.confidence ?? 1.0,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         } catch (error) {
           errorCallback(error as Error);
@@ -65,8 +65,14 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions): Speech
   return {
     start,
     stop,
-    onResult: (cb) => { resultCallback = cb; },
-    onError: (cb) => { errorCallback = cb; },
-    onEnd: (cb) => { endCallback = cb; }
+    onResult: (cb) => {
+      resultCallback = cb;
+    },
+    onError: (cb) => {
+      errorCallback = cb;
+    },
+    onEnd: (cb) => {
+      endCallback = cb;
+    },
   };
 }

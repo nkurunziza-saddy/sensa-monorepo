@@ -1,441 +1,301 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { trpc } from "@/utils/trpc";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
-import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
-import { useGestureDetection } from "@/hooks/use-gesture-detection";
-import { useAccessibilitySettings } from "@/hooks/use-accessibility-settings";
-import { LargeButton } from "@/components/ui/large-button";
+import * as React from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
-  Mic,
-  MessageSquare,
-  Hand,
-  Volume2,
-  Square,
-  Send,
-  Camera,
-  Info,
-  History,
-} from "lucide-react";
-import {
+  Box,
   Container,
   VStack,
-  Heading,
-  Text,
-  Box,
-  Flex,
-  IconButton,
-  Input,
-  Tabs,
-  Center,
-  Badge,
   HStack,
-  Separator,
+  Text,
+  Center,
+  Heading,
 } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "motion/react";
+import { ConversationBar } from "@/components/conversation-bar";
+import { AIInput } from "@/components/ui/smoothui/ai-input";
+import { VoiceInput } from "@/components/ui/smoothui/voice-input";
+import { Orb } from "@/components/ui/orb";
+import type { AgentState } from "@/components/ui/orb";
+import { Eye, Mic, Volume2, User, ArrowLeft, ArrowRightLeft, Hand } from "lucide-react";
+import NextLink from "next/link";
+import { useGestureDetection } from "@/hooks/use-gesture-detection";
 
-export default function CommunicatePage() {
-  const [activeTab, setActiveTab] = useState<string>("text");
-  const [textInput, setTextInput] = useState("");
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+const MotionBox = motion(Box);
 
-  const conversationId = "unified-session";
-  const { autoReadMessages } = useAccessibilitySettings();
+type Condition = "visual" | "vocal" | "auditory" | "none";
+type Message = { id: string; sender: string; content: string; time: string; modality: string };
 
-  // --- Database Logic ---
-  const { data: messages, refetch } = useQuery(
-    trpc.communication.listMessages.queryOptions({ conversationId }),
-  );
-  const addMessage = useMutation(
-    trpc.communication.addMessage.mutationOptions({
-      onSuccess: () => refetch(),
-    }),
-  );
+function CommunicateContent() {
+  const searchParams = useSearchParams();
+  const a = (searchParams.get("a") as Condition) || "none";
+  const b = (searchParams.get("b") as Condition) || "none";
+  
+  const [activeUser, setActiveUser] = useState<"A" | "B">("A");
+  const [agentState, setAgentState] = useState<AgentState>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const currentCondition = activeUser === "A" ? a : b;
 
-  const saveMessage = useCallback(
-    (content: string, inputModality: "speech" | "text" | "gesture") => {
-      addMessage.mutate({
-        conversationId,
-        inputModality,
-        outputModality: "text",
-        content,
-      });
-    },
-    [addMessage, conversationId],
-  );
-
-  // --- Speech Logic ---
-  const { isListening, transcript, start: startSTT, stop: stopSTT } = useSpeechRecognition();
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const { start: startGestures, stop: stopGestures, isDetecting, detectedGesture } = useGestureDetection(videoRef.current || undefined);
+  const lastGestureRef = React.useRef<string | null>(null);
 
   useEffect(() => {
-    if (transcript) {
-      saveMessage(transcript, "speech");
-      if (autoReadMessages) speak(transcript);
+    if (detectedGesture && detectedGesture.gesture !== lastGestureRef.current) {
+      addMessage(`Person ${activeUser}`, detectedGesture.phrase, "gesture");
+      lastGestureRef.current = detectedGesture.gesture;
+      
+      const timer = setTimeout(() => {
+        lastGestureRef.current = null;
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  }, [transcript, saveMessage, autoReadMessages]);
-
-  // --- Gesture Logic ---
-  const {
-    isDetecting,
-    detectedGesture,
-    metadata,
-    start: startGesture,
-    stop: stopGesture,
-    availableGestures,
-  } = useGestureDetection(videoElement || undefined);
+  }, [detectedGesture, activeUser]);
 
   useEffect(() => {
-    if (detectedGesture) {
-      saveMessage(detectedGesture.phrase, "gesture");
-      speak(detectedGesture.phrase);
+    if (currentCondition === "vocal" && videoRef.current) {
+      startGestures();
+    } else {
+      stopGestures();
     }
-  }, [detectedGesture, saveMessage]);
+  }, [currentCondition, startGestures, stopGestures, videoRef.current]);
 
-  // --- Speech Synthesis ---
-  const { speak } = useSpeechSynthesis();
-
-  const handleSendText = () => {
-    if (!textInput.trim()) return;
-    saveMessage(textInput, "text");
-    setTextInput("");
+  const addMessage = (sender: string, content: string, modality: string) => {
+    const newMessage: Message = {
+      id: Math.random().toString(36).substr(2, 9),
+      sender,
+      content,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modality
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    if (value === "gesture") {
-      // Auto-start gesture when tab opens
-      // We rely on videoElement being set via callback ref
+  const handleMessage = (msg: { source: "user" | "ai"; message: string }) => {
+    if (msg.source === "ai") {
+      setAgentState("talking");
+      addMessage("Assistant", msg.message, "audio");
+      setTimeout(() => setAgentState(null), 3000);
     } else {
-      stopGesture();
+      setAgentState("listening");
+      if (msg.source === "user") {
+        const modality = activeUser === "A" ? (a === "visual" ? "speech" : "text") : (b === "visual" ? "speech" : "text");
+        addMessage(`Person ${activeUser}`, msg.message, modality);
+      }
     }
   };
 
   return (
-    <Container maxW="7xl" py="6" h="full" display="flex" flexDirection="column" gap="6">
-      <Flex justify="space-between" align="center" borderBottomWidth="1px" pb="4">
-        <HStack gap="4">
-          <Center w="12" h="12" bg="indigo.600" rounded="xl" color="white" boxShadow="md">
-            <MessageSquare size={24} />
-          </Center>
-          <VStack align="start" gap="0">
-            <Heading size="2xl" fontWeight="bold" letterSpacing="tight">
-              Command Center
-            </Heading>
-            <Text fontSize="sm" color="fg.muted">
-              Multimodal Communication Hub
-            </Text>
-          </VStack>
-        </HStack>
+    <Box bg="canvas" h="calc(100vh - 64px)" display="flex" flexDirection="column" overflow="hidden">
+      <Box py={4} borderBottom="1px solid" borderColor="hairline-soft" bg="canvas" zIndex={10}>
+        <Container maxW="1200px">
+          <HStack justify="space-between">
+            <NextLink href="/">
+              <HStack gap={2} color="muted" _hover={{ color: "primary" }} transition="all 0.2s">
+                <ArrowLeft size={14} />
+                <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em">Cancel Bridge</Text>
+              </HStack>
+            </NextLink>
 
-        <HStack gap="3">
-          <Badge
-            colorPalette={isListening ? "red" : "gray"}
-            variant="subtle"
-            px="3"
-            py="1"
-            rounded="full"
-          >
-            {isListening ? "Mic Active" : "Mic Ready"}
-          </Badge>
-          <Badge
-            colorPalette={isDetecting ? "green" : "gray"}
-            variant="subtle"
-            px="3"
-            py="1"
-            rounded="full"
-          >
-            {isDetecting ? "Camera Active" : "Camera Ready"}
-          </Badge>
-        </HStack>
-      </Flex>
-
-      <Flex direction={{ base: "column", lg: "row" }} gap="6" flex="1" overflow="hidden">
-        {/* LEFT: Input & Controls */}
-        <VStack w={{ base: "full", lg: "450px" }} gap="6" align="stretch">
-          <Box bg="bg.panel" borderWidth="1px" rounded="3xl" p="6" boxShadow="lg">
-            <Tabs.Root
-              value={activeTab}
-              onValueChange={(e) => handleTabChange(e.value)}
-              variant="subtle"
-            >
-              <Tabs.List gap="2" mb="6" bg="bg.muted" p="1" rounded="2xl">
-                <Tabs.Trigger
-                  value="text"
-                  flex="1"
-                  gap="2"
-                  rounded="xl"
-                  _selected={{ bg: "bg.panel", boxShadow: "sm" }}
-                >
-                  <MessageSquare size={16} /> Type
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="speech"
-                  flex="1"
-                  gap="2"
-                  rounded="xl"
-                  _selected={{ bg: "bg.panel", boxShadow: "sm" }}
-                >
-                  <Mic size={16} /> Speak
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="gesture"
-                  flex="1"
-                  gap="2"
-                  rounded="xl"
-                  _selected={{ bg: "bg.panel", boxShadow: "sm" }}
-                >
-                  <Hand size={16} /> Sign
-                </Tabs.Trigger>
-              </Tabs.List>
-
-              <Tabs.Content value="text" p="0">
-                <VStack gap="4">
-                  <Input
-                    value={textInput}
-                    onChange={(e) => setTextInput(e.target.value)}
-                    placeholder="Type to chat..."
-                    size="xl"
-                    bg="bg.muted"
-                    rounded="2xl"
-                    fontSize="xl"
-                    h="20"
-                    onKeyDown={(e) => e.key === "Enter" && handleSendText()}
-                  />
-                  <LargeButton variant="accent" onClick={handleSendText} h="16" w="full" gap="2">
-                    <Send size={20} /> Send Message
-                  </LargeButton>
-                </VStack>
-              </Tabs.Content>
-
-              <Tabs.Content value="speech" p="0">
-                <Center py="6" flexDirection="column" gap="6">
-                  <Box position="relative">
-                    {isListening && (
-                      <Box
-                        position="absolute"
-                        inset="-4"
-                        bg="red.500/10"
-                        rounded="full"
-                        animation="ping 2s infinite"
-                      />
-                    )}
-                    <LargeButton
-                      size="xl"
-                      variant={isListening ? "destructive" : "default"}
-                      onClick={isListening ? stopSTT : startSTT}
-                      rounded="full"
-                      w="40"
-                      h="40"
-                      boxShadow="xl"
-                    >
-                      {isListening ? <Square size={56} fill="currentColor" /> : <Mic size={56} />}
-                    </LargeButton>
-                  </Box>
-                  <VStack gap="1">
-                    <Text fontWeight="bold" fontSize="lg">
-                      {isListening ? "Listening..." : "Tap to Speak"}
-                    </Text>
-                    <Text fontSize="sm" color="fg.muted">
-                      Voice will be transcribed and shared
-                    </Text>
-                  </VStack>
-                </Center>
-              </Tabs.Content>
-
-              <Tabs.Content value="gesture" p="0">
-                <VStack gap="4">
-                  <Box
-                    position="relative"
-                    w="full"
-                    rounded="2xl"
-                    overflow="hidden"
-                    bg="black"
-                    aspectRatio={4 / 3}
-                  >
-                    <video
-                      ref={setVideoElement}
-                      className="w-full h-full object-cover"
-                      autoPlay
-                      playsInline
-                      muted
-                    />
-                    {!isDetecting && (
-                      <Center
-                        position="absolute"
-                        inset="0"
-                        bg="black/60"
-                        backdropFilter="blur(4px)"
-                      >
-                        <LargeButton size="sm" onClick={startGesture} gap="2">
-                          <Camera size={18} /> Start Camera
-                        </LargeButton>
-                      </Center>
-                    )}
-                    {isDetecting && (
-                      <Box position="absolute" top="3" left="3" right="3">
-                        <Flex
-                          bg="black/50"
-                          backdropFilter="blur(8px)"
-                          p="2"
-                          rounded="lg"
-                          align="center"
-                          gap="2"
-                          color="white"
-                          fontSize="xs"
-                        >
-                          <Info size={14} />
-                          <Text isTruncated>
-                            {!metadata.handFound
-                              ? "Show hand"
-                              : !metadata.isCentered
-                                ? "Center hand"
-                                : "System ready"}
-                          </Text>
-                        </Flex>
-                      </Box>
-                    )}
-                  </Box>
-                  <Box w="full" bg="bg.muted" p="3" rounded="xl">
-                    <Heading size="xs" mb="2" color="indigo.600">
-                      Quick Signs
-                    </Heading>
-                    <Flex wrap="wrap" gap="2">
-                      {availableGestures.slice(0, 8).map((g) => (
-                        <Badge
-                          key={g.gesture}
-                          variant="outline"
-                          cursor="pointer"
-                          onClick={() => speak(g.phrase)}
-                        >
-                          {g.icon} {g.phrase}
-                        </Badge>
-                      ))}
-                    </Flex>
-                  </Box>
-                </VStack>
-              </Tabs.Content>
-            </Tabs.Root>
-          </Box>
-
-          {/* Status/Settings Summary */}
-          <Box bg="bg.panel" p="4" rounded="2xl" borderWidth="1px">
-            <HStack justify="space-between">
-              <Text fontSize="xs" fontWeight="bold" color="fg.muted">
-                AUTO-REPLY MODE
-              </Text>
-              <Badge colorPalette={autoReadMessages ? "green" : "orange"} size="sm">
-                {autoReadMessages ? "ACTIVE" : "OFF"}
-              </Badge>
+            <HStack gap={8} bg="surface-soft" px={6} py={2} rounded="full" border="1px solid" borderColor="hairline-soft">
+               <ParticipantInfo label="Person A" condition={a} active={activeUser === "A"} onClick={() => setActiveUser("A")} />
+               <ArrowRightLeft size={12} opacity={0.3} />
+               <ParticipantInfo label="Person B" condition={b} active={activeUser === "B"} onClick={() => setActiveUser("B")} />
             </HStack>
-          </Box>
-        </VStack>
 
-        {/* RIGHT: Chat History (The Connection) */}
-        <VStack flex="1" gap="4" align="stretch" overflow="hidden">
-          <Box
-            flex="1"
-            overflowY="auto"
-            rounded="3xl"
-            borderWidth="1px"
-            bg="bg.panel"
-            p="6"
-            boxShadow="inner"
-            display="flex"
-            flexDirection="column-reverse" // Show newest at bottom
-          >
-            <VStack gap="6" align="stretch">
-              {messages?.map((msg) => (
-                <Flex
-                  key={msg.id}
-                  gap="4"
-                  align="start"
-                  animation="slide-in-from-bottom-2 0.4s ease-out"
-                >
-                  <Center
-                    w="10"
-                    h="10"
-                    rounded="full"
-                    bg={
-                      msg.inputModality === "gesture"
-                        ? "purple.100"
-                        : msg.inputModality === "speech"
-                          ? "blue.100"
-                          : "indigo.100"
-                    }
-                    _dark={{
-                      bg:
-                        msg.inputModality === "gesture"
-                          ? "purple.900/30"
-                          : msg.inputModality === "speech"
-                            ? "blue.900/30"
-                            : "indigo.900/30",
-                    }}
-                    flexShrink="0"
-                  >
-                    {msg.inputModality === "speech" && (
-                      <Mic size={18} color="var(--chakra-colors-blue-500)" />
+            <HStack gap={3} opacity={0.4}>
+               <Box w={2} h={2} rounded="full" bg="brand-teal" />
+               <Text fontSize="9px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em">Live Bridge</Text>
+            </HStack>
+          </HStack>
+        </Container>
+      </Box>
+
+      <Box flex="1" overflowY="auto" py={8} position="relative">
+        <Container maxW="800px">
+           <VStack gap={10} w="full">
+              <Box position="relative" w="full" display="flex" justifyContent="center">
+                 <Box w={{ base: "180px", md: "240px" }} h={{ base: "180px", md: "240px" }}>
+                    <Orb 
+                     agentState={agentState} 
+                     colors={getConditionColors(currentCondition)} 
+                     className="w-full h-full"
+                    />
+                 </Box>
+                 <Center position="absolute" inset="0" pointerEvents="none">
+                    <VStack gap={1}>
+                       <Text fontSize="9px" fontWeight="700" textTransform="uppercase" letterSpacing="0.4em" opacity={0.3}>
+                          {activeUser === "A" ? "Person A" : "Person B"}
+                       </Text>
+                       <Text fontSize="xs" fontWeight="500">
+                          {getConditionLabel(currentCondition)}
+                       </Text>
+                    </VStack>
+                 </Center>
+              </Box>
+
+              <VStack gap={6} w="full" align="stretch">
+                 <AnimatePresence initial={false}>
+                    {messages.length === 0 ? (
+                      <VStack gap={2} opacity={0.2} py={4}>
+                        <Text fontSize="xs" fontWeight="600">Multimodal stream initialized</Text>
+                        <Box w="1" h="1" rounded="full" bg="primary" />
+                      </VStack>
+                    ) : (
+                      messages.map((m) => (
+                        <MessageBubble key={m.id} sender={m.sender} content={m.content} time={m.time} modality={m.modality} />
+                      ))
                     )}
-                    {msg.inputModality === "text" && (
-                      <MessageSquare size={18} color="var(--chakra-colors-indigo-500)" />
-                    )}
-                    {msg.inputModality === "gesture" && (
-                      <Hand size={18} color="var(--chakra-colors-purple-500)" />
-                    )}
-                  </Center>
+                 </AnimatePresence>
+              </VStack>
+           </VStack>
+        </Container>
+      </Box>
 
-                  <VStack align="start" gap="1" flex="1">
-                    <Flex align="center" gap="2" w="full">
-                      <Text fontWeight="bold" fontSize="sm" textTransform="capitalize">
-                        {msg.inputModality} Input
-                      </Text>
-                      <Separator orientation="vertical" h="3" />
-                      <Text fontSize="xs" color="fg.muted">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </Text>
-                    </Flex>
-
-                    <Box
-                      p="4"
-                      rounded="2xl"
-                      roundedTopLeft="0"
-                      bg="bg.muted"
-                      maxW="full"
-                      borderWidth="1px"
-                    >
-                      <Text fontSize="xl" lineHeight="short">
-                        {msg.content}
-                      </Text>
-                    </Box>
-                  </VStack>
-
-                  <IconButton
-                    variant="ghost"
-                    rounded="full"
-                    size="sm"
-                    aria-label="Read"
-                    onClick={() => speak(msg.content)}
-                  >
-                    <Volume2 size={18} />
-                  </IconButton>
-                </Flex>
-              ))}
-
-              {messages?.length === 0 && (
-                <Center h="300px" flexDirection="column" color="fg.muted" gap="4">
-                  <History size={64} style={{ opacity: 0.1 }} />
-                  <Text fontSize="lg" opacity={0.5}>
-                    Your communication history will appear here
-                  </Text>
-                </Center>
-              )}
-            </VStack>
-          </Box>
-        </VStack>
-      </Flex>
-    </Container>
+      <Box bg="rgba(255, 250, 240, 0.9)" backdropFilter="blur(30px)" py={8} borderTop="1px solid" borderColor="hairline-soft" zIndex={10}>
+        <Container maxW="800px">
+           <AnimatePresence mode="wait">
+             <MotionBox
+               key={`${activeUser}-${currentCondition}`}
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+               w="full"
+             >
+                {currentCondition === "vocal" ? (
+                   <VStack w="full" gap={6}>
+                      <Box 
+                        w="full" 
+                        maxW="320px" 
+                        aspectRatio={4/3} 
+                        bg="primary" 
+                        rounded="clay-md" 
+                        overflow="hidden"
+                        position="relative"
+                        border="1px solid"
+                        borderColor="hairline"
+                      >
+                         <video 
+                           ref={videoRef}
+                           autoPlay 
+                           playsInline 
+                           muted 
+                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                         />
+                         {!isDetecting && (
+                            <Center position="absolute" inset="0" bg="primary" color="white">
+                               <VStack gap={2}>
+                                  <Hand size={24} strokeWidth={1.5} opacity={0.5} />
+                                  <Text fontSize="xs" fontWeight="600">Initializing recognition...</Text>
+                               </VStack>
+                            </Center>
+                         )}
+                      </Box>
+                      <HStack gap={4}>
+                         <Box w={2} h={2} rounded="full" bg="brand-teal" />
+                         <Text fontSize="xs" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">Gesture active</Text>
+                      </HStack>
+                   </VStack>
+                ) : currentCondition === "visual" ? (
+                   <VoiceInput onMessage={handleMessage} />
+                ) : (
+                   <AIInput onMessage={handleMessage} />
+                )}
+             </MotionBox>
+           </AnimatePresence>
+        </Container>
+      </Box>
+    </Box>
   );
+}
+
+export default function CommunicatePage() {
+  return (
+    <Suspense fallback={<Center h="full"><Text>Loading bridge...</Text></Center>}>
+      <CommunicateContent />
+    </Suspense>
+  );
+}
+
+function ParticipantInfo({ label, condition, active, onClick }: { 
+  label: string, 
+  condition: Condition, 
+  active: boolean,
+  onClick: () => void 
+}) {
+  const Icon = condition === "visual" ? Eye : condition === "vocal" ? Mic : condition === "auditory" ? Volume2 : User;
+  
+  return (
+    <HStack 
+      as="button"
+      onClick={onClick}
+      gap={3} 
+      px={3} 
+      py={1.5} 
+      rounded="clay-md" 
+      bg={active ? "canvas" : "transparent"}
+      border="1px solid"
+      borderColor={active ? "hairline" : "transparent"}
+      transition="all 0.2s"
+    >
+      <Center w={6} h={6} rounded="full" bg={active ? "primary" : "surface-soft"} color={active ? "white" : "muted"}>
+         <Icon size={12} strokeWidth={2} />
+      </Center>
+      <VStack align="start" gap={0}>
+        <Text fontSize="9px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color={active ? "primary" : "muted"}>{label}</Text>
+        <Text fontSize="10px" fontWeight="600" opacity={active ? 1 : 0.5}>{condition === "none" ? "Standard" : condition.charAt(0).toUpperCase() + condition.slice(1)}</Text>
+      </VStack>
+    </HStack>
+  );
+}
+
+function MessageBubble({ sender, content, time, modality }: { sender: string, content: string, time: string, modality: string }) {
+  return (
+    <MotionBox
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      w="full"
+    >
+      <VStack align="start" gap={2} w="full" px={2}>
+        <HStack w="full" justify="space-between">
+          <HStack gap={3}>
+            <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="primary">{sender}</Text>
+            <Box w="1px" h="2" bg="hairline" />
+            <Text fontSize="9px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">{modality}</Text>
+          </HStack>
+          <Text fontSize="10px" color="muted" fontWeight="500">{time}</Text>
+        </HStack>
+        <Box 
+          p={6} 
+          bg="surface-soft" 
+          rounded="clay-md" 
+          border="1px solid" 
+          borderColor="hairline-soft"
+          w="full"
+        >
+          <Text fontSize="md" lineHeight="1.6" fontWeight="400">{content}</Text>
+        </Box>
+      </VStack>
+    </MotionBox>
+  );
+}
+
+function getConditionColors(condition: Condition): [string, string] {
+  switch (condition) {
+    case "visual": return ["#ff4d8b", "#ffb084"];
+    case "vocal": return ["#1a3a3a", "#a4d4c5"];
+    case "auditory": return ["#b8a4ed", "#e8b94a"];
+    default: return ["#0a0a0a", "#6a6a6a"];
+  }
+}
+
+function getConditionLabel(condition: Condition): string {
+  switch (condition) {
+    case "visual": return "Aural Focus";
+    case "vocal": return "Gesture Bridge";
+    case "auditory": return "Visual Stream";
+    default: return "Standard Access";
+  }
 }

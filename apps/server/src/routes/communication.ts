@@ -90,3 +90,47 @@ communicationRoutes.post("/text-to-speech", async (c) => {
     return c.json({ error: "Text to speech failed" }, 500);
   }
 });
+
+communicationRoutes.post("/assistant", async (c) => {
+  try {
+    const { message } = await c.req.json();
+
+    if (!message) {
+      return c.json({ error: "No message provided" }, 400);
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are an accessibility assistant for Sensa. Provide concise, helpful responses to help users communicate. User says: ${message}`,
+                },
+              ],
+            },
+          ],
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Gemini API error");
+    }
+
+    const data = (await response.json()) as any;
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't process that.";
+
+    return c.json({ reply: reply.trim() });
+  } catch (error) {
+    console.error("Assistant Error:", error);
+    return c.json({ error: "Assistant failed" }, 500);
+  }
+});

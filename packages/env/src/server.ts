@@ -12,6 +12,8 @@ export interface CloudflareEnv {
   GROQ_API_KEY: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  ELEVENLABS_API_KEY: string;
+  ELEVENLABS_AGENT_ID: string;
 }
 
 export const env = cfEnv as unknown as CloudflareEnv;

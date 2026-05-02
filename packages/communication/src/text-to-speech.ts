@@ -14,7 +14,9 @@ function getAudioContext() {
   return sharedAudioContext;
 }
 
-export function createSpeechSynthesizer(options: SpeechSynthesizerOptions = {}): TextToSpeechProvider & { onError: (cb: (err: Error) => void) => void, onStart: (cb: () => void) => void, onEnd: (cb: () => void) => void } {
+export function createSpeechSynthesizer(
+  options: SpeechSynthesizerOptions = {},
+): TextToSpeechProvider {
   const apiUrl = options.apiUrl || "http://localhost:3000/api/text-to-speech";
 
   let startCallback: () => void = () => {};
@@ -53,10 +55,16 @@ export function createSpeechSynthesizer(options: SpeechSynthesizerOptions = {}):
     }
   };
 
-  return { 
+  return {
     speak,
-    onStart: (cb) => { startCallback = cb; },
-    onEnd: (cb) => { endCallback = cb; },
-    onError: (cb) => { errorCallback = cb; }
+    onStart: (cb) => {
+      startCallback = cb;
+    },
+    onEnd: (cb) => {
+      endCallback = cb;
+    },
+    onError: (cb) => {
+      errorCallback = cb;
+    },
   };
 }

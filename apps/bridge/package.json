@@ -1,0 +1,30 @@
+{
+  "name": "bridge",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3002",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@sensa-monorepo/communication": "workspace:*",
+    "@sensa-monorepo/env": "workspace:*",
+    "lucide-react": "^1.11.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0",
+    "motion": "^12.38.0"
+  },
+  "devDependencies": {
+    "@sensa-monorepo/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5"
+  }
+}
