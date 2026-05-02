@@ -1,14 +1,12 @@
+"use client";
+
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import * as v from "valibot";
-
 import { authClient } from "@/lib/auth-client";
-
 import Loader from "./loader";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Box, Heading, VStack, Input, Button, Text, Field } from "@chakra-ui/react";
+import { toaster } from "@/components/ui/toaster";
 
 export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const router = useRouter();
@@ -29,11 +27,11 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
-            router.push("/dashboard");
-            toast.success("Sign up successful");
+            router.push("/");
+            toaster.create({ title: "Sign up successful", type: "success" });
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            toaster.create({ title: error.error.message || "Sign up failed", type: "error" });
           },
         },
       );
@@ -52,8 +50,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+    <Box maxW="md" mx="auto" mt="10" p="6" bg="bg.panel" borderWidth="1px" rounded="3xl" boxShadow="xl">
+      <Heading size="3xl" textAlign="center" mb="6">Create Account</Heading>
 
       <form
         onSubmit={(e) => {
@@ -61,98 +59,93 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
       >
-        <div>
+        <VStack gap="4" align="stretch">
           <form.Field name="name">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
+              <Field.Root invalid={field.state.meta.errors.length > 0}>
+                <Field.Label>Name</Field.Label>
                 <Input
-                  id={field.name}
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  rounded="xl"
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
+                  <Field.ErrorText key={error?.message}>{error?.message}</Field.ErrorText>
                 ))}
-              </div>
+              </Field.Root>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="email">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
+              <Field.Root invalid={field.state.meta.errors.length > 0}>
+                <Field.Label>Email</Field.Label>
                 <Input
-                  id={field.name}
                   name={field.name}
                   type="email"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  rounded="xl"
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
+                  <Field.ErrorText key={error?.message}>{error?.message}</Field.ErrorText>
                 ))}
-              </div>
+              </Field.Root>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="password">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
+              <Field.Root invalid={field.state.meta.errors.length > 0}>
+                <Field.Label>Password</Field.Label>
                 <Input
-                  id={field.name}
                   name={field.name}
                   type="password"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  rounded="xl"
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
+                  <Field.ErrorText key={error?.message}>{error?.message}</Field.ErrorText>
                 ))}
-              </div>
+              </Field.Root>
             )}
           </form.Field>
-        </div>
 
-        <form.Subscribe>
-          {(state) => (
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!state.canSubmit || state.isSubmitting}
-            >
-              {state.isSubmitting ? "Submitting..." : "Sign Up"}
-            </Button>
-          )}
-        </form.Subscribe>
+          <form.Subscribe>
+            {(state) => (
+              <Button
+                type="submit"
+                colorPalette="indigo"
+                rounded="xl"
+                size="lg"
+                loading={state.isSubmitting}
+                disabled={!state.canSubmit}
+              >
+                Sign Up
+              </Button>
+            )}
+          </form.Subscribe>
+        </VStack>
       </form>
 
-      <div className="mt-4 text-center">
+      <Box mt="6" textAlign="center">
         <Button
-          variant="link"
+          variant="ghost"
           onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
+          color="indigo.600"
+          _hover={{ bg: "indigo.50" }}
+          rounded="xl"
         >
           Already have an account? Sign In
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
+

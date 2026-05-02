@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "alchemy dev",
+    "dev": "echo 'Skipping alchemy dev locally...'",
     "deploy": "alchemy deploy",
     "destroy": "alchemy destroy"
   },

@@ -5,17 +5,22 @@
   "scripts": {
     "build": "tsdown",
     "check-types": "tsc -b",
-    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server"
+    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "dev": "bun run --watch ./src/index.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.67",
     "@hono/trpc-server": "^0.4.2",
     "@sensa-monorepo/api": "workspace:*",
     "@sensa-monorepo/auth": "workspace:*",
+    "@sensa-monorepo/communication": "workspace:*",
     "@sensa-monorepo/db": "workspace:*",
     "@sensa-monorepo/env": "workspace:*",
     "@trpc/server": "catalog:",
+    "ai": "^6.0.174",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "google-tts-api": "^2.0.2",
     "hono": "catalog:",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",

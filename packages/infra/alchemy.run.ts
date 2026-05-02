@@ -16,6 +16,9 @@ export const server = await Worker("server", {
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     BETTER_AUTH_SECRET: alchemy.secret.env.BETTER_AUTH_SECRET!,
     BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,
+    GEMINI_API_KEY: alchemy.secret.env.GEMINI_API_KEY!,
+    GOOGLE_CLIENT_ID: alchemy.env.GOOGLE_CLIENT_ID!,
+    GOOGLE_CLIENT_SECRET: alchemy.secret.env.GOOGLE_CLIENT_SECRET!,
   },
   dev: {
     port: 3000,

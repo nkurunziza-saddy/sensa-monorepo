@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./server": "./src/server.ts",
+    "./server": {
+      "bun": "./src/server.bun.ts",
+      "default": "./src/server.ts"
+    },
     "./web": "./src/web.ts"
   },
   "dependencies": {

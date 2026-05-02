@@ -1,0 +1,15 @@
+{
+  "name": "@sensa-monorepo/communication",
+  "type": "module",
+  "exports": {
+    ".": { "default": "./src/index.ts" },
+    "./*": { "default": "./src/*.ts" }
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sensa-monorepo/config": "workspace:*",
+    "typescript": "^6.0.3"
+  }
+}

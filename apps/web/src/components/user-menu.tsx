@@ -1,62 +1,61 @@
-import Link from "next/link";
+"use client";
+
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  MenuContent,
+  MenuItem,
+  MenuRoot,
+  MenuTrigger,
+} from "@/components/ui/menu"; // I need to create this Chakra v3 snippet-like component
 import { authClient } from "@/lib/auth-client";
-
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { Button, Skeleton, Text } from "@chakra-ui/react";
 
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
+    return <Skeleton h="9" w="24" rounded="md" />;
   }
 
   if (!session) {
     return (
-      <Link href="/login">
+      <NextLink href="/login">
         <Button variant="outline">Sign In</Button>
-      </Link>
+      </NextLink>
     );
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
+    <MenuRoot>
+      <MenuTrigger asChild>
+        <Button variant="outline" rounded="md">
+          {session.user.name}
+        </Button>
+      </MenuTrigger>
+      <MenuContent>
+        <MenuItem value="email" disabled>
+          <Text fontSize="sm" color="fg.muted">{session.user.email}</Text>
+        </MenuItem>
+        <MenuItem
+          value="sign-out"
+          color="red.600"
+          _hover={{ bg: "red.50" }}
+          onClick={() => {
+            authClient.signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push("/");
                 },
-              });
-            }}
-          >
-            Sign Out
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              },
+            });
+          }}
+        >
+          Sign Out
+        </MenuItem>
+      </MenuContent>
+    </MenuRoot>
   );
 }
+

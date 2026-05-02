@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-
 import { trpc } from "@/utils/trpc";
+import { Container, Box, Heading, Text, Flex, Center, VStack } from "@chakra-ui/react";
 
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
@@ -23,25 +23,38 @@ export default function Home() {
   const healthCheck = useQuery(trpc.healthCheck.queryOptions());
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-      <div className="grid gap-6">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">API Status</h2>
-          <div className="flex items-center gap-2">
-            <div
-              className={`h-2 w-2 rounded-full ${healthCheck.data ? "bg-green-500" : "bg-red-500"}`}
+    <Container maxW="3xl" px="4" py="8">
+      <Box as="pre" overflowX="auto" fontFamily="mono" fontSize="xs" mb="8" color="indigo.600" _dark={{ color: "indigo.400" }}>
+        {TITLE_TEXT}
+      </Box>
+      
+      <VStack gap="6" align="stretch">
+        <Box borderWidth="1px" p="6" rounded="2xl" bg="bg.panel" boxShadow="sm">
+          <Heading size="md" mb="4">API Status</Heading>
+          <Flex align="center" gap="3">
+            <Box
+              h="3"
+              w="3"
+              rounded="full"
+              bg={healthCheck.data ? "green.500" : "red.500"}
+              boxShadow={healthCheck.data ? "0 0 8px var(--chakra-colors-green-500)" : "none"}
             />
-            <span className="text-sm text-muted-foreground">
+            <Text fontSize="lg" fontWeight="medium">
               {healthCheck.isLoading
                 ? "Checking..."
                 : healthCheck.data
-                  ? "Connected"
+                  ? "Connected to Alchemy Backend"
                   : "Disconnected"}
-            </span>
-          </div>
-        </section>
-      </div>
-    </div>
+            </Text>
+          </Flex>
+        </Box>
+
+        <Center p="12" borderWidth="1px" borderStyle="dashed" rounded="3xl" flexDirection="column" gap="4">
+          <Heading size="lg" textAlign="center">Ready to Communicate?</Heading>
+          <Text color="fg.muted" textAlign="center">Navigate to Talk, Reply, or Gesture using the header above.</Text>
+        </Center>
+      </VStack>
+    </Container>
   );
 }
+
