@@ -1,9 +1,10 @@
 "use client";
 
 import NextLink from "next/link";
+import Image from "next/image";
 import UserMenu from "./user-menu";
-import { MessageSquare, Hand, Settings, LayoutDashboard, Volume2 } from "lucide-react";
-import { Flex, HStack, Box, IconButton, Text, Center } from "@chakra-ui/react";
+import { Hand, Settings, LayoutDashboard, Volume2 } from "lucide-react";
+import { Flex, HStack, Box, IconButton, Text } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 
 export default function Header() {
@@ -22,11 +23,9 @@ export default function Header() {
       <Flex maxW="8xl" mx="auto" h="20" align="center" justify="space-between" px="6">
         <NextLink
           href="/"
-          style={{ display: "flex", alignItems: "center", gap: "3", textDecoration: "none" }}
+          style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}
         >
-          <Center w="10" h="10" bg="indigo.600" rounded="xl" color="white" boxShadow="md">
-            <MessageSquare size={24} />
-          </Center>
+          <Image src="/logo_sensa0.png" alt="Sensa Logo" width={52} height={52} style={{ objectFit: "contain" }} />
           <Box
             fontWeight="bold"
             fontSize="2xl"
