@@ -16,8 +16,22 @@ import {
   Badge,
   Separator,
   Button,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
-import { LayoutDashboard, Mic, Hand, ArrowRight, CheckCircle2, Zap } from "lucide-react";
+import {
+  LayoutDashboard,
+  Mic,
+  Hand,
+  ArrowRight,
+  CheckCircle2,
+  Zap,
+  MessageSquare,
+  Volume2,
+  Users,
+  Globe,
+  Shield,
+} from "lucide-react";
 import { LargeButton } from "@/components/ui/large-button";
 
 export default function Home() {
@@ -27,8 +41,8 @@ export default function Home() {
     <Box bg="bg.panel" overflowY="auto">
       {/* Hero Section */}
       <Box
-        pt="16"
-        pb="12"
+        pt="20"
+        pb="16"
         bgGradient="to-b"
         gradientFrom="indigo.50/50"
         gradientTo="bg.panel"
@@ -73,7 +87,7 @@ export default function Home() {
               </NextLink>
             </HStack>
 
-            <HStack gap="8" pt="8" color="fg.muted">
+            <HStack gap="8" pt="8" color="fg.muted" flexWrap="wrap" justify="center">
               <HStack gap="2">
                 <CheckCircle2 size={18} color="var(--chakra-colors-green-500)" />
                 <Text fontSize="sm" fontWeight="medium">
@@ -99,8 +113,41 @@ export default function Home() {
 
       <Separator />
 
+      {/* Stats Bar */}
+      <Box bg="indigo.600" py="8">
+        <Container maxW="5xl">
+          <SimpleGrid columns={{ base: 2, md: 4 }} gap="8">
+            {[
+              { value: "3", label: "Input Modalities" },
+              { value: "< 200ms", label: "Avg. Latency" },
+              { value: "20+", label: "Sign Gestures" },
+              { value: "100%", label: "Open Source" },
+            ].map((stat) => (
+              <VStack key={stat.label} gap="1" textAlign="center" color="white">
+                <Text fontSize="3xl" fontWeight="black">
+                  {stat.value}
+                </Text>
+                <Text fontSize="sm" opacity={0.8}>
+                  {stat.label}
+                </Text>
+              </VStack>
+            ))}
+          </SimpleGrid>
+        </Container>
+      </Box>
+
+      <Separator />
+
       {/* Feature Grid */}
       <Container maxW="6xl" py="20">
+        <VStack gap="4" textAlign="center" mb="12">
+          <Heading size="4xl" fontWeight="bold">
+            Everything You Need
+          </Heading>
+          <Text fontSize="lg" color="fg.muted" maxW="xl">
+            Three powerful tools, one unified platform — built for everyone.
+          </Text>
+        </VStack>
         <SimpleGrid columns={{ base: 1, md: 3 }} gap="8">
           <FeatureCard
             icon={<LayoutDashboard size={32} />}
@@ -120,11 +167,123 @@ export default function Home() {
             icon={<Mic size={32} />}
             title="Speech Core"
             description="Ultra-low latency transcription using Groq and Whisper, bridged with neural text-to-speech."
-            href="/communicate"
+            href="/talk"
             color="blue"
           />
         </SimpleGrid>
       </Container>
+
+      <Separator />
+
+      {/* How It Works */}
+      <Box bg="bg.muted" py="20">
+        <Container maxW="5xl">
+          <VStack gap="4" textAlign="center" mb="14">
+            <Heading size="4xl" fontWeight="bold">
+              How It Works
+            </Heading>
+            <Text fontSize="lg" color="fg.muted">
+              Three steps to seamless accessible communication.
+            </Text>
+          </VStack>
+          <Grid templateColumns={{ base: "1fr", md: "1fr auto 1fr auto 1fr" }} gap="4" alignItems="center">
+            <StepCard
+              step="1"
+              icon={<MessageSquare size={28} />}
+              title="Choose Your Input"
+              description="Type text, speak into your mic, or use hand gestures — whatever works best for you."
+              color="indigo"
+            />
+            <Center display={{ base: "none", md: "flex" }}>
+              <ArrowRight size={28} color="var(--chakra-colors-fg-muted)" />
+            </Center>
+            <StepCard
+              step="2"
+              icon={<Zap size={28} />}
+              title="Instant Processing"
+              description="Sensa translates your input in real-time using AI-powered speech and gesture recognition."
+              color="purple"
+            />
+            <Center display={{ base: "none", md: "flex" }}>
+              <ArrowRight size={28} color="var(--chakra-colors-fg-muted)" />
+            </Center>
+            <StepCard
+              step="3"
+              icon={<Volume2 size={28} />}
+              title="Output & Reply"
+              description="Receive spoken audio, text transcripts, or sign language visuals — all in one place."
+              color="blue"
+            />
+          </Grid>
+        </Container>
+      </Box>
+
+      <Separator />
+
+      {/* Why Sensa */}
+      <Container maxW="6xl" py="20">
+        <VStack gap="4" textAlign="center" mb="12">
+          <Heading size="4xl" fontWeight="bold">
+            Why Sensa?
+          </Heading>
+          <Text fontSize="lg" color="fg.muted" maxW="xl">
+            Built with accessibility as a first-class citizen, not an afterthought.
+          </Text>
+        </VStack>
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap="6">
+          <WhyCard
+            icon={<Users size={24} />}
+            title="Inclusive by Design"
+            description="Every feature is built for users with visual, auditory, or motor impairments — not retrofitted."
+            color="indigo"
+          />
+          <WhyCard
+            icon={<Globe size={24} />}
+            title="Universal Access"
+            description="Works across devices and browsers. No app install required — just open and communicate."
+            color="green"
+          />
+          <WhyCard
+            icon={<Shield size={24} />}
+            title="Privacy First"
+            description="Your conversations stay yours. No third-party tracking, no data selling, ever."
+            color="orange"
+          />
+        </SimpleGrid>
+      </Container>
+
+      <Separator />
+
+      {/* CTA Banner */}
+      <Box
+        bgGradient="to-r"
+        gradientFrom="indigo.600"
+        gradientTo="purple.600"
+        py="16"
+      >
+        <Container maxW="3xl">
+          <VStack gap="6" textAlign="center" color="white">
+            <Heading size="4xl" fontWeight="black">
+              Ready to break barriers?
+            </Heading>
+            <Text fontSize="lg" opacity={0.9}>
+              Join thousands of users communicating without limits.
+            </Text>
+            <HStack gap="4">
+              <NextLink href="/communicate">
+                <Button size="xl" bg="white" color="indigo.600" rounded="2xl" px="10" _hover={{ bg: "indigo.50" }}>
+                  Get Started Free
+                </Button>
+              </NextLink>
+              <NextLink href="/login">
+                <Button size="xl" variant="outline" rounded="2xl" px="10" borderColor="white/40" color="white" _hover={{ bg: "white/10" }}>
+                  Sign In
+                </Button>
+              </NextLink>
+            </HStack>
+          </VStack>
+        </Container>
+      </Box>
 
       {/* Tech Status */}
       <Box bg="bg.muted" py="12">
@@ -185,7 +344,7 @@ function FeatureCard({
   href,
   color,
 }: {
-  icon: any;
+  icon: React.ReactNode;
   title: string;
   description: string;
   href: string;
@@ -227,7 +386,114 @@ function FeatureCard({
             {description}
           </Text>
         </VStack>
+        <HStack color={`${color}.600`} fontSize="sm" fontWeight="semibold" mt="auto">
+          <Text>Explore</Text>
+          <ArrowRight size={16} />
+        </HStack>
       </VStack>
     </NextLink>
+  );
+}
+
+function StepCard({
+  step,
+  icon,
+  title,
+  description,
+  color,
+}: {
+  step: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}) {
+  return (
+    <VStack
+      align="center"
+      textAlign="center"
+      p="8"
+      bg="bg.panel"
+      rounded="3xl"
+      borderWidth="1px"
+      gap="4"
+    >
+      <Center
+        w="14"
+        h="14"
+        bg={`${color}.100`}
+        _dark={{ bg: `${color}.900/30` }}
+        rounded="2xl"
+        color={`${color}.600`}
+        position="relative"
+      >
+        {icon}
+        <Badge
+          position="absolute"
+          top="-2"
+          right="-2"
+          colorPalette={color}
+          rounded="full"
+          w="6"
+          h="6"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          fontSize="xs"
+          fontWeight="black"
+        >
+          {step}
+        </Badge>
+      </Center>
+      <Heading size="lg" fontWeight="bold">
+        {title}
+      </Heading>
+      <Text color="fg.muted" fontSize="sm" lineHeight="relaxed">
+        {description}
+      </Text>
+    </VStack>
+  );
+}
+
+function WhyCard({
+  icon,
+  title,
+  description,
+  color,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}) {
+  return (
+    <HStack
+      align="start"
+      p="6"
+      bg="bg.panel"
+      rounded="2xl"
+      borderWidth="1px"
+      gap="4"
+    >
+      <Center
+        w="12"
+        h="12"
+        bg={`${color}.100`}
+        _dark={{ bg: `${color}.900/30` }}
+        rounded="xl"
+        color={`${color}.600`}
+        flexShrink="0"
+      >
+        {icon}
+      </Center>
+      <VStack align="start" gap="1">
+        <Heading size="md" fontWeight="bold">
+          {title}
+        </Heading>
+        <Text color="fg.muted" fontSize="sm" lineHeight="relaxed">
+          {description}
+        </Text>
+      </VStack>
+    </HStack>
   );
 }

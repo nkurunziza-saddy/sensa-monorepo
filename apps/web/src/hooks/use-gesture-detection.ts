@@ -18,6 +18,7 @@ export function useGestureDetection(videoElement?: HTMLVideoElement) {
   const [error, setError] = useState<string | null>(null);
 
   const detectorRef = useRef<ReturnType<typeof createGestureDetector> | null>(null);
+  const lastMetadataRef = useRef<DetectionMetadata | null>(null);
   const { hapticFeedback } = useAccessibilitySettings();
 
   const vibrate = useCallback(
@@ -43,7 +44,16 @@ export function useGestureDetection(videoElement?: HTMLVideoElement) {
     });
 
     detector.onMetadata((m) => {
-      setMetadata(m);
+      const prev = lastMetadataRef.current;
+      if (
+        !prev ||
+        prev.handFound !== m.handFound ||
+        prev.isCentered !== m.isCentered ||
+        prev.distance !== m.distance
+      ) {
+        lastMetadataRef.current = m;
+        setMetadata(m);
+      }
     });
 
     detector.onError((err) => {

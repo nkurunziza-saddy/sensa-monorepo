@@ -17,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "sensa-monorepo",
-  description: "sensa-monorepo",
+  title: "Sensa — Accessibility Without Boundaries",
+  description:
+    "The world's first unified translation layer connecting Speech, Sign Language, and Text in one seamless experience.",
 };
 
 export default function RootLayout({
