@@ -6,8 +6,18 @@ import { useGestureDetection } from "@/hooks/use-gesture-detection";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { getEmojiForText, GESTURE_MAPPINGS } from "@sensa-monorepo/communication";
 import { LargeButton } from "@/components/ui/large-button";
-import { Mic, Square, AlertCircle, Copy, Volume2, Hand, MessageSquare } from "lucide-react";
-import { Container, VStack, Heading, Text, Box, Flex, HStack, Center, Badge } from "@chakra-ui/react";
+import { Mic, Square, AlertCircle, Copy, Volume2, MessageSquare } from "lucide-react";
+import {
+  Container,
+  VStack,
+  Heading,
+  Text,
+  Box,
+  Flex,
+  HStack,
+  Center,
+  Badge,
+} from "@chakra-ui/react";
 
 interface Result {
   id: string;
@@ -19,8 +29,19 @@ interface Result {
 
 export default function TalkPage() {
   const [results, setResults] = useState<Result[]>([]);
-  const { isListening, transcript, error: speechError, start: startSpeech, stop: stopSpeech } = useSpeechRecognition();
-  const { detectedGesture, error: gestureError, start: startGesture, stop: stopGesture } = useGestureDetection();
+  const {
+    isListening,
+    transcript,
+    error: speechError,
+    start: startSpeech,
+    stop: stopSpeech,
+  } = useSpeechRecognition();
+  const {
+    detectedGesture,
+    error: gestureError,
+    start: startGesture,
+    stop: stopGesture,
+  } = useGestureDetection();
   const { speak } = useSpeechSynthesis();
 
   // Initialize gesture detection (background/mock)
@@ -47,7 +68,8 @@ export default function TalkPage() {
   // Handle new gesture results
   useEffect(() => {
     if (detectedGesture) {
-      const emoji = GESTURE_MAPPINGS.find(g => g.gesture === detectedGesture.gesture)?.icon || "✋";
+      const emoji =
+        GESTURE_MAPPINGS.find((g) => g.gesture === detectedGesture.gesture)?.icon || "✋";
       const newResult: Result = {
         id: Math.random().toString(36).substring(7),
         type: "gesture",
@@ -142,7 +164,9 @@ export default function TalkPage() {
               >
                 <Flex align="center" gap="2" mb="3" color="indigo.600">
                   <Mic size={18} />
-                  <Text fontSize="sm" fontWeight="bold" textTransform="uppercase">Live Transcript</Text>
+                  <Text fontSize="sm" fontWeight="bold" textTransform="uppercase">
+                    Live Transcript
+                  </Text>
                 </Flex>
                 <Flex align="center" gap="4" mb="6">
                   <Text fontSize="4xl">{getEmojiForText(transcript)}</Text>
@@ -151,10 +175,22 @@ export default function TalkPage() {
                   </Text>
                 </Flex>
                 <HStack gap="4">
-                  <LargeButton variant="outline" size="sm" flex="1" gap="2" onClick={() => speak(transcript)}>
+                  <LargeButton
+                    variant="outline"
+                    size="sm"
+                    flex="1"
+                    gap="2"
+                    onClick={() => speak(transcript)}
+                  >
                     <Volume2 size={18} /> Read
                   </LargeButton>
-                  <LargeButton variant="outline" size="sm" flex="1" gap="2" onClick={() => navigator.clipboard.writeText(transcript)}>
+                  <LargeButton
+                    variant="outline"
+                    size="sm"
+                    flex="1"
+                    gap="2"
+                    onClick={() => navigator.clipboard.writeText(transcript)}
+                  >
                     <Copy size={18} /> Copy
                   </LargeButton>
                 </HStack>
@@ -163,7 +199,14 @@ export default function TalkPage() {
           </VStack>
 
           {/* Results Sidebar */}
-          <Box w={{ base: "full", lg: "400px" }} bg="bg.panel" borderWidth="1px" rounded="3xl" p="6" boxShadow="sm">
+          <Box
+            w={{ base: "full", lg: "400px" }}
+            bg="bg.panel"
+            borderWidth="1px"
+            rounded="3xl"
+            p="6"
+            boxShadow="sm"
+          >
             <VStack align="stretch" gap="6" h="full">
               <Heading size="md" display="flex" alignItems="center" gap="2">
                 <MessageSquare size={20} />
@@ -199,14 +242,20 @@ export default function TalkPage() {
                         </VStack>
                       </HStack>
                       <Text fontSize="xs" color="fg.muted">
-                        {new Date(res.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {new Date(res.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
                       </Text>
                     </Flex>
-                    <Text fontSize="lg" fontWeight="medium">{res.content}</Text>
+                    <Text fontSize="lg" fontWeight="medium">
+                      {res.content}
+                    </Text>
                     <Flex justify="flex-end" mt="2">
-                      <Volume2 
-                        size={16} 
-                        style={{ cursor: "pointer", opacity: 0.6 }} 
+                      <Volume2
+                        size={16}
+                        style={{ cursor: "pointer", opacity: 0.6 }}
                         onClick={() => speak(res.content)}
                       />
                     </Flex>

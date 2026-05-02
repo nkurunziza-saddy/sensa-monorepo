@@ -4,12 +4,6 @@ import * as googleTTS from "google-tts-api";
 
 export const communicationRoutes = new Hono();
 
-// We initialize the provider lazily in case env vars are populated via Cloudflare Worker bindings
-const getGroqProvider = () =>
-  createGroq({
-    apiKey: env.GROQ_API_KEY!,
-  });
-
 communicationRoutes.post("/speech-to-text", async (c) => {
   try {
     const formData = await c.req.formData();

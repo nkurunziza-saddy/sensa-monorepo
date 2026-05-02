@@ -5,7 +5,18 @@ import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { LargeButton } from "@/components/ui/large-button";
 import { Send, AlertCircle, Hand } from "lucide-react";
 import { GESTURE_MAPPINGS, getSignSequence } from "@sensa-monorepo/communication";
-import { Container, VStack, Heading, Text, Box, Flex, SimpleGrid, Input, Center, HStack } from "@chakra-ui/react";
+import {
+  Container,
+  VStack,
+  Heading,
+  Text,
+  Box,
+  Flex,
+  SimpleGrid,
+  Input,
+  Center,
+  HStack,
+} from "@chakra-ui/react";
 
 export default function ReplyPage() {
   const { speak, isSpeaking, error } = useSpeechSynthesis();
@@ -73,16 +84,31 @@ export default function ReplyPage() {
               <Box bg="bg.muted" p="6" rounded="2xl" borderStyle="dashed" borderWidth="2px">
                 <Flex align="center" gap="2" mb="4" color="indigo.600">
                   <Hand size={20} />
-                  <Text fontWeight="bold" textTransform="uppercase" fontSize="sm">Sign Language Translation</Text>
+                  <Text fontWeight="bold" textTransform="uppercase" fontSize="sm">
+                    Sign Language Translation
+                  </Text>
                 </Flex>
-                
+
                 <HStack gap="6" overflowX="auto" py="2" minH="120px" justify="center">
                   {signSequence.map((sign, idx) => (
                     <VStack key={idx} gap="2" animation="scale-in 0.3s ease-out">
-                      <Center w="20" h="20" bg="bg.panel" rounded="2xl" fontSize="4xl" boxShadow="md" borderWidth="1px">
+                      <Center
+                        w="20"
+                        h="20"
+                        bg="bg.panel"
+                        rounded="2xl"
+                        fontSize="4xl"
+                        boxShadow="md"
+                        borderWidth="1px"
+                      >
                         {sign.icon}
                       </Center>
-                      <Text fontSize="xs" fontWeight="bold" color="fg.muted" textTransform="uppercase">
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color="fg.muted"
+                        textTransform="uppercase"
+                      >
                         {sign.phrase}
                       </Text>
                     </VStack>
@@ -98,7 +124,9 @@ export default function ReplyPage() {
           </VStack>
         </Box>
 
-        <Heading size="md" px="2">Phrase Quick-Board</Heading>
+        <Heading size="md" px="2">
+          Phrase Quick-Board
+        </Heading>
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="4">
           {GESTURE_MAPPINGS.map((mapping) => (
             <LargeButton

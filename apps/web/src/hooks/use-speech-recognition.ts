@@ -8,9 +8,7 @@ export function useSpeechRecognition() {
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Track recognizer instance to stop it
   const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer> | null>(null);
-
   const { hapticFeedback } = useAccessibilitySettings();
 
   const vibrate = useCallback(
@@ -24,22 +22,25 @@ export function useSpeechRecognition() {
 
   const start = useCallback(() => {
     setError(null);
-    vibrate(50); // Small feedback on start
+    vibrate(50);
 
     const recognizer = createSpeechRecognizer({
-      apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/speech-to-text`,
-      onResult: (text) => {
-        setTranscript(text);
-        vibrate([50, 50, 50]); // Success vibration
-      },
-      onError: (err) => {
-        setError(err.message);
-        vibrate([200, 100, 200]); // Error vibration
-        setIsListening(false);
-      },
-      onEnd: () => {
-        setIsListening(false);
-      },
+      apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/speech-to-text`
+    });
+
+    recognizer.onResult((res) => {
+      setTranscript(res.text);
+      vibrate([50, 50, 50]);
+    });
+
+    recognizer.onError((err) => {
+      setError(err.message);
+      vibrate([200, 100, 200]);
+      setIsListening(false);
+    });
+
+    recognizer.onEnd(() => {
+      setIsListening(false);
     });
 
     recognizerRef.current = recognizer;

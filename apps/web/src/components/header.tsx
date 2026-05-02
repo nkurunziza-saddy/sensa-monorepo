@@ -2,8 +2,8 @@
 
 import NextLink from "next/link";
 import UserMenu from "./user-menu";
-import { MessageSquare, Mic, Hand, Settings } from "lucide-react";
-import { Flex, HStack, Box, IconButton } from "@chakra-ui/react";
+import { MessageSquare, Hand, Settings, LayoutDashboard, Volume2 } from "lucide-react";
+import { Flex, HStack, Box, IconButton, Text, Center } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 
 export default function Header() {
@@ -17,23 +17,23 @@ export default function Header() {
       borderBottomWidth="1px"
       bg="bg.panel"
       backdropFilter="blur(8px)"
+      boxShadow="sm"
     >
-      <Flex maxW="8xl" mx="auto" h="20" align="center" justify="space-between" px="4">
+      <Flex maxW="8xl" mx="auto" h="20" align="center" justify="space-between" px="6">
         <NextLink
           href="/"
           style={{ display: "flex", alignItems: "center", gap: "3", textDecoration: "none" }}
         >
+          <Center w="10" h="10" bg="indigo.600" rounded="xl" color="white" boxShadow="md">
+            <MessageSquare size={24} />
+          </Center>
           <Box
-            display="flex"
-            alignItems="center"
-            gap="3"
             fontWeight="bold"
             fontSize="2xl"
             letterSpacing="tight"
             color="indigo.600"
             _dark={{ color: "indigo.400" }}
           >
-            <MessageSquare size={32} />
             Sensa
           </Box>
         </NextLink>
@@ -41,13 +41,13 @@ export default function Header() {
         <HStack
           as="nav"
           display={{ base: "none", md: "flex" }}
-          gap="6"
-          fontSize="lg"
-          fontWeight="medium"
+          gap="8"
+          fontSize="md"
+          fontWeight="semibold"
         >
-          <NavLink href="/talk" icon={<Mic size={20} />} label="Talk" />
-          <NavLink href="/reply" icon={<MessageSquare size={20} />} label="Reply" />
-          <NavLink href="/gesture" icon={<Hand size={20} />} label="Gesture" />
+          <NavLink href="/communicate" icon={<LayoutDashboard size={20} />} label="The Hub" />
+          <NavLink href="/gesture" icon={<Hand size={20} />} label="Sign Lab" />
+          <NavLink href="/reply" icon={<Volume2 size={20} />} label="Phrases" />
         </HStack>
 
         <HStack gap="4">
@@ -57,8 +57,9 @@ export default function Header() {
               rounded="full"
               size="lg"
               aria-label="Accessibility Settings"
+              _hover={{ bg: "bg.muted" }}
             >
-              <Settings size={24} />
+              <Settings size={22} />
             </IconButton>
           </NextLink>
           <ColorModeButton />
@@ -72,17 +73,19 @@ export default function Header() {
 function NavLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
     <NextLink href={href as any} style={{ textDecoration: "none" }}>
-      <Box
-        display="flex"
-        alignItems="center"
-        gap="2"
-        p="2"
-        _hover={{ color: "indigo.600" }}
-        transition="colors"
+      <HStack
+        gap="2.5"
+        px="3"
+        py="2"
+        rounded="xl"
+        color="fg.muted"
+        _hover={{ color: "indigo.600", bg: "indigo.50" }}
+        _dark={{ _hover: { color: "indigo.300", bg: "indigo.900/30" } }}
+        transition="all 0.2s"
       >
         {icon}
-        {label}
-      </Box>
+        <Text>{label}</Text>
+      </HStack>
     </NextLink>
   );
 }

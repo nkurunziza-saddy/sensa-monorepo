@@ -24,14 +24,15 @@ export function useSpeechSynthesis() {
       vibrate(50);
 
       const synthesizer = createSpeechSynthesizer({
-        apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/text-to-speech`,
-        onStart: () => setIsSpeaking(true),
-        onEnd: () => setIsSpeaking(false),
-        onError: (err) => {
-          setError(err.message);
-          setIsSpeaking(false);
-          vibrate([200, 100, 200]);
-        },
+        apiUrl: `${env.NEXT_PUBLIC_SERVER_URL}/api/text-to-speech`
+      });
+
+      synthesizer.onStart(() => setIsSpeaking(true));
+      synthesizer.onEnd(() => setIsSpeaking(false));
+      synthesizer.onError((err) => {
+        setError(err.message);
+        setIsSpeaking(false);
+        vibrate([200, 100, 200]);
       });
 
       await synthesizer.speak(text, voiceId);

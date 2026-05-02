@@ -1,9 +1,4 @@
-import { type server } from "@sensa-monorepo/infra/alchemy.run";
-
-// This file infers types for the cloudflare:workers environment from your Alchemy Worker.
-// @see https://alchemy.run/concepts/bindings/#type-safe-bindings
-
-export type CloudflareEnv = typeof server.Env;
+import type { CloudflareEnv } from "./src/server";
 
 declare global {
   type Env = CloudflareEnv;

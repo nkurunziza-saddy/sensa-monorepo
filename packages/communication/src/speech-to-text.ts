@@ -1,14 +1,16 @@
+import type { SpeechToTextProvider, TranslationResult } from "./index";
+
 export interface SpeechRecognizerOptions {
-  onResult: (text: string, confidence?: number) => void;
-  onError: (error: Error) => void;
-  onEnd: () => void;
   apiUrl: string;
 }
 
-export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
+export function createSpeechRecognizer(options: SpeechRecognizerOptions): SpeechToTextProvider & { onEnd: (cb: () => void) => void } {
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
-  const apiUrl = options.apiUrl;
+  
+  let resultCallback: (result: TranslationResult) => void = () => {};
+  let errorCallback: (error: Error) => void = () => {};
+  let endCallback: () => void = () => {};
 
   const start = async () => {
     try {
@@ -17,9 +19,7 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
       audioChunks = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
+        if (event.data.size > 0) audioChunks.push(event.data);
       };
 
       mediaRecorder.onstop = async () => {
@@ -27,24 +27,32 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
         try {
           const formData = new FormData();
           formData.append("audio", audioBlob, "audio.webm");
-          const response = await fetch(apiUrl, {
+          
+          const response = await fetch(options.apiUrl, {
             method: "POST",
             body: formData,
           });
+
           if (!response.ok) throw new Error("API error: " + response.statusText);
+          
           const data = (await response.json()) as { text: string; confidence?: number };
-          options.onResult(data.text, data.confidence);
+          
+          resultCallback({
+            text: data.text,
+            confidence: data.confidence ?? 1.0,
+            timestamp: Date.now()
+          });
         } catch (error) {
-          options.onError(error as Error);
+          errorCallback(error as Error);
         } finally {
-          options.onEnd();
+          endCallback();
           stream.getTracks().forEach((track) => track.stop());
         }
       };
 
       mediaRecorder.start();
     } catch (error) {
-      options.onError(error as Error);
+      errorCallback(error as Error);
     }
   };
 
@@ -54,5 +62,11 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions) {
     }
   };
 
-  return { start, stop };
+  return {
+    start,
+    stop,
+    onResult: (cb) => { resultCallback = cb; },
+    onError: (cb) => { errorCallback = cb; },
+    onEnd: (cb) => { endCallback = cb; }
+  };
 }

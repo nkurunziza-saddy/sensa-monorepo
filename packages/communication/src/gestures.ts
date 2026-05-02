@@ -21,13 +21,13 @@ export const GESTURE_MAPPINGS: GestureMapping[] = [
 
 export function getEmojiForText(text: string): string {
   const normalized = text.toLowerCase().trim();
-  
+
   // Try exact phrase match
-  const match = GESTURE_MAPPINGS.find(m => 
-    normalized.includes(m.phrase.toLowerCase()) || 
-    m.phrase.toLowerCase().includes(normalized)
+  const match = GESTURE_MAPPINGS.find(
+    (m) =>
+      normalized.includes(m.phrase.toLowerCase()) || m.phrase.toLowerCase().includes(normalized),
   );
-  
+
   if (match) return match.icon;
 
   // Fallback keyword matching
@@ -39,14 +39,14 @@ export function getEmojiForText(text: string): string {
   if (normalized.includes("stop") || normalized.includes("wait")) return "✋";
   if (normalized.includes("love")) return "❤️";
   if (normalized.includes("okay") || normalized.includes("ok")) return "👌";
-  
+
   return "💬"; // Default speech bubble
 }
 
-export function getSignSequence(text: string): { phrase: string, icon: string }[] {
+export function getSignSequence(text: string): { phrase: string; icon: string }[] {
   const words = text.toLowerCase().split(/\s+/);
-  const sequence: { phrase: string, icon: string }[] = [];
-  
+  const sequence: { phrase: string; icon: string }[] = [];
+
   let i = 0;
   while (i < words.length) {
     // Try matching phrases (up to 3 words)
@@ -54,11 +54,10 @@ export function getSignSequence(text: string): { phrase: string, icon: string }[
     for (let len = 3; len >= 1; len--) {
       if (i + len <= words.length) {
         const candidate = words.slice(i, i + len).join(" ");
-        const match = GESTURE_MAPPINGS.find(m => 
-          m.phrase.toLowerCase() === candidate || 
-          m.phrase.toLowerCase().includes(candidate)
+        const match = GESTURE_MAPPINGS.find(
+          (m) => m.phrase.toLowerCase() === candidate || m.phrase.toLowerCase().includes(candidate),
         );
-        
+
         if (match) {
           sequence.push({ phrase: match.phrase, icon: match.icon });
           i += len;
@@ -67,12 +66,12 @@ export function getSignSequence(text: string): { phrase: string, icon: string }[
         }
       }
     }
-    
+
     if (!foundMatch) {
       // No match for this word, skip or add generic icon
       i++;
     }
   }
-  
+
   return sequence;
 }

@@ -1,7 +1,6 @@
+import type { TextToSpeechProvider } from "./index";
+
 export interface SpeechSynthesizerOptions {
-  onStart?: () => void;
-  onEnd?: () => void;
-  onError?: (error: Error) => void;
   apiUrl?: string;
 }
 
@@ -15,17 +14,20 @@ function getAudioContext() {
   return sharedAudioContext;
 }
 
-export function createSpeechSynthesizer(options: SpeechSynthesizerOptions) {
+export function createSpeechSynthesizer(options: SpeechSynthesizerOptions = {}): TextToSpeechProvider & { onError: (cb: (err: Error) => void) => void, onStart: (cb: () => void) => void, onEnd: (cb: () => void) => void } {
   const apiUrl = options.apiUrl || "http://localhost:3000/api/text-to-speech";
+
+  let startCallback: () => void = () => {};
+  let endCallback: () => void = () => {};
+  let errorCallback: (err: Error) => void = () => {};
 
   const speak = async (text: string, voice?: string) => {
     const audioContext = getAudioContext();
     if (!audioContext) return;
 
     try {
-      options.onStart?.();
+      startCallback();
 
-      // Ensure context is running (required by some browsers after user interaction)
       if (audioContext.state === "suspended") {
         await audioContext.resume();
       }
@@ -43,13 +45,18 @@ export function createSpeechSynthesizer(options: SpeechSynthesizerOptions) {
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.destination);
-      source.onended = () => options.onEnd?.();
+      source.onended = () => endCallback();
       source.start();
     } catch (error) {
-      options.onError?.(error as Error);
-      options.onEnd?.();
+      errorCallback(error as Error);
+      endCallback();
     }
   };
 
-  return { speak };
+  return { 
+    speak,
+    onStart: (cb) => { startCallback = cb; },
+    onEnd: (cb) => { endCallback = cb; },
+    onError: (cb) => { errorCallback = cb; }
+  };
 }

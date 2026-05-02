@@ -1,8 +1,10 @@
+export type Modality = "speech" | "text" | "gesture";
+
 export interface TranslationResult {
-  text?: string;
-  audioUrl?: string;
-  confidence?: number;
+  text: string;
+  confidence: number;
   timestamp: number;
+  metadata?: Record<string, any>;
 }
 
 export interface GestureMapping {
@@ -11,10 +13,30 @@ export interface GestureMapping {
   icon: string;
 }
 
-export type InputModality = "speech" | "text" | "gesture";
-export type OutputModality = "text" | "audio" | "haptic";
+// --- Provider Interfaces ---
 
+export interface SpeechToTextProvider {
+  start: () => Promise<void>;
+  stop: () => void;
+  onResult: (callback: (result: TranslationResult) => void) => void;
+  onError: (callback: (error: Error) => void) => void;
+}
+
+export interface TextToSpeechProvider {
+  speak: (text: string, voice?: string) => Promise<void>;
+  onStart?: () => void;
+  onEnd?: () => void;
+}
+
+export interface GestureProvider {
+  start: () => Promise<void>;
+  stop: () => void;
+  onGesture: (callback: (gesture: string, phrase: string, confidence: number) => void) => void;
+  onMetadata?: (callback: (metadata: any) => void) => void;
+}
+
+// --- Exports ---
 export { GESTURE_MAPPINGS, getEmojiForText, getSignSequence } from "./gestures";
-export { createSpeechRecognizer, type SpeechRecognizerOptions } from "./speech-to-text";
-export { createSpeechSynthesizer, type SpeechSynthesizerOptions } from "./text-to-speech";
-export { createGestureDetector, type GestureDetectorOptions } from "./gesture-to-text";
+export { createSpeechRecognizer } from "./speech-to-text";
+export { createSpeechSynthesizer } from "./text-to-speech";
+export { createGestureDetector } from "./gesture-to-text";
