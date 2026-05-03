@@ -3,12 +3,10 @@
 import * as React from "react";
 import { Box, Container, VStack, HStack, Text, Heading, Spinner, Center } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "motion/react";
-import { Terminal, Video, VideoOff, Wifi, WifiOff, ArrowRight, Hand } from "lucide-react";
+import { Terminal, Video, VideoOff, Wifi, WifiOff, ArrowRight } from "lucide-react";
 import {
   SmoothButton,
   ScrambleText,
-  getConditionColors,
-  type Condition,
 } from "@sensa-monorepo/ui";
 import { createGestureDetector } from "@sensa-monorepo/communication";
 import { trpc } from "@/utils/trpc";
@@ -238,7 +236,7 @@ export default function BridgePage() {
           {isActive && !detectedGesture && (
             <Box position="absolute" top={4} left={4}>
               <HStack gap={2} bg="rgba(10, 10, 10, 0.4)" backdropFilter="blur(8px)" px={3} py={1.5} rounded="full" border="1px solid" borderColor="white/10">
-                <Spinner size="xs" color="brand-pink" thickness="2px" />
+                <Spinner size="xs" color="brand-pink" borderWidth="2px" />
                 <Text fontSize="9px" fontWeight="800" color="white/90" letterSpacing="0.05em">
                   SCANNING GESTURES
                 </Text>

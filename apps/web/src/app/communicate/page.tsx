@@ -1,23 +1,28 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Box, Container, VStack, HStack, Text, Center, Heading } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "motion/react";
 import { AIInput } from "@/components/ui/smoothui/ai-input";
 import { VoiceInput } from "@/components/ui/smoothui/voice-input";
 import {
-  Orb,
   type AgentState,
   SmoothButton,
   getConditionColors,
   type Condition,
 } from "@sensa-monorepo/ui";
-import { Eye, Mic, Volume2, User, ArrowLeft, ArrowRightLeft, Hand, Trash2 } from "lucide-react";
+import { Eye, Mic, Volume2, User, ArrowLeft, ArrowRightLeft, Trash2, Hand } from "lucide-react";
 import NextLink from "next/link";
 import { useGestureDetection } from "@/hooks/use-gesture-detection";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
+import dynamic from "next/dynamic";
+
+const Orb = dynamic(() => import("@sensa-monorepo/ui").then((mod) => mod.Orb), {
+  ssr: false,
+  loading: () => <Box w="full" h="full" bg="surface-soft/20" rounded="full" />,
+});
 
 const MotionBox = motion(Box);
 
@@ -33,7 +38,10 @@ function CommunicateContent() {
   const a = (searchParams.get("a") as Condition) || "none";
   const b = (searchParams.get("b") as Condition) || "none";
 
-  const [activeUser, setActiveUser] = useState<"A" | "B">(() => getInitialActiveUser(a, b));
+  const defaultUser = useMemo(() => getInitialActiveUser(a, b), [a, b]);
+  const [activeUserOverride, setActiveUserOverride] = useState<"A" | "B" | null>(null);
+  const activeUser = activeUserOverride ?? defaultUser;
+
   const [agentState, setAgentState] = useState<AgentState>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const currentCondition = activeUser === "A" ? a : b;
@@ -84,8 +92,12 @@ function CommunicateContent() {
   }, [currentCondition, startGestures, stopGestures, videoElement]);
 
   useEffect(() => {
-    setActiveUser(getInitialActiveUser(a, b));
+    setActiveUserOverride(null);
   }, [a, b]);
+
+  const setActiveUser = (user: "A" | "B") => {
+    setActiveUserOverride(user);
+  };
 
   const addMessage = (sender: string, content: string, modality: string) => {
     const newMessage: Message = {
@@ -174,17 +186,6 @@ function CommunicateContent() {
               <SmoothButton variant="ghost" size="sm" onClick={clearMessages} color="muted">
                 <Trash2 size={14} />
               </SmoothButton>
-              <HStack gap={2} opacity={0.4}>
-                <Box w={2} h={2} rounded="full" bg="brand-teal" />
-                <Text
-                  fontSize="9px"
-                  fontWeight="700"
-                  textTransform="uppercase"
-                  letterSpacing="0.1em"
-                >
-                  Live Bridge
-                </Text>
-              </HStack>
             </HStack>
           </HStack>
         </Container>

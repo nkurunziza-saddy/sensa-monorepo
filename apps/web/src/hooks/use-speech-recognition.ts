@@ -3,12 +3,19 @@ import { createSpeechRecognizer } from "@sensa-monorepo/communication";
 import { useAccessibilitySettings } from "./use-accessibility-settings";
 import { env } from "@sensa-monorepo/env/web";
 
-export function useSpeechRecognition() {
+export interface UseSpeechRecognitionOptions {
+  onResult?: (transcript: string) => void;
+  onEnd?: (transcript: string) => void;
+  onError?: (error: Error) => void;
+}
+
+export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer> | null>(null);
+  const transcriptRef = useRef("");
   const { hapticFeedback } = useAccessibilitySettings();
 
   const vibrate = useCallback(
@@ -22,6 +29,8 @@ export function useSpeechRecognition() {
 
   const start = useCallback(async () => {
     setError(null);
+    setTranscript("");
+    transcriptRef.current = "";
     vibrate(50);
 
     const recognizer = createSpeechRecognizer({
@@ -30,23 +39,27 @@ export function useSpeechRecognition() {
 
     recognizer.onResult((res) => {
       setTranscript(res.text);
+      transcriptRef.current = res.text;
+      options.onResult?.(res.text);
       vibrate([50, 50, 50]);
     });
 
     recognizer.onError((err) => {
       setError(err.message);
+      options.onError?.(err);
       vibrate([200, 100, 200]);
       setIsListening(false);
     });
 
     recognizer.onEnd(() => {
       setIsListening(false);
+      options.onEnd?.(transcriptRef.current);
     });
 
     recognizerRef.current = recognizer;
     await recognizer.start();
     setIsListening(true);
-  }, [vibrate]);
+  }, [vibrate, options]);
 
   const stop = useCallback(() => {
     if (recognizerRef.current) {

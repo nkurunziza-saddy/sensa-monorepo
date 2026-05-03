@@ -14,18 +14,15 @@ interface VoiceInputProps {
 const MotionBox = motion(Box);
 
 export function VoiceInput({ onMessage }: VoiceInputProps) {
-  const { isListening, transcript, start, stop, error } = useSpeechRecognition();
-  const processedTranscriptRef = useRef("");
-
-  useEffect(() => {
-    if (!isListening && transcript.trim() && transcript !== processedTranscriptRef.current) {
-      onMessage?.({ source: "user", message: transcript });
-      processedTranscriptRef.current = transcript;
-    }
-  }, [isListening, transcript, onMessage]);
+  const { isListening, transcript, start, stop, error } = useSpeechRecognition({
+    onEnd: (finalTranscript) => {
+      if (finalTranscript.trim()) {
+        onMessage?.({ source: "user", message: finalTranscript });
+      }
+    },
+  });
 
   const handleStart = () => {
-    processedTranscriptRef.current = "";
     start();
   };
 

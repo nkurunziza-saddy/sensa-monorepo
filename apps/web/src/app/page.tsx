@@ -1,10 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { Box, Container, VStack, HStack, Grid, Heading, Text } from "@chakra-ui/react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
-  Orb,
   type AgentState,
   ScrambleText,
   SmoothButton,
@@ -14,8 +14,12 @@ import {
 import { Eye, Mic, Volume2, ArrowRight, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+const Orb = dynamic(() => import("@sensa-monorepo/ui").then((mod) => mod.Orb), {
+  ssr: false,
+  loading: () => <Box w="full" h="full" bg="surface-soft/20" rounded="full" />,
+});
+
 const MotionBox = motion(Box);
-const MotionVStack = motion(VStack);
 
 export default function Home() {
   const router = useRouter();
@@ -117,7 +121,6 @@ export default function Home() {
                 </Box>
               </VStack>
 
-              {/* SMALLER ORB PREVIEW */}
               <Box w="140px" h="140px" opacity={step === 2 ? 1 : 0.4} transition="opacity 0.5s">
                 <Orb
                   agentState={agentState}
