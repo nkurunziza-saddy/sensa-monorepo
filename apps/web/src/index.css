@@ -11,7 +11,10 @@
   --color-hairline: #e5e5e5;
   --color-hairline-soft: #f0f0f0;
   --color-surface-soft: #faf5e8;
+  --color-surface-card: #ffffff;
+  --color-surface-strong: #f5f0e0;
 
+  --color-primary: #0a0a0a;
   --color-brand-pink: #ff4d8b;
   --color-brand-teal: #1a3a3a;
   --color-brand-lavender: #b8a4ed;
@@ -23,17 +26,6 @@
 }
 
 @layer base {
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
 
   :root {
     --background: var(--color-canvas);

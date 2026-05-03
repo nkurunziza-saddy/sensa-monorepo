@@ -89,7 +89,7 @@ export default function LandingClientPage() {
                   </SmoothButton>
                 </NextLink>
                 <NextLink href="/communicate?a=none&b=auditory">
-                  <SmoothButton variant="ghost" h="14" px={8} color="muted">
+                  <SmoothButton variant="outline" h="14" px={8} color="muted">
                     Preview Experience
                   </SmoothButton>
                 </NextLink>
