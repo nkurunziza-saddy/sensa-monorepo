@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -20,6 +21,7 @@
     "@sensa-monorepo/auth": "workspace:*",
     "@sensa-monorepo/communication": "workspace:*",
     "@sensa-monorepo/env": "workspace:*",
+    "@sensa-monorepo/ui": "workspace:*",
     "@tanstack/react-form": "^1.29.1",
     "@tanstack/react-query": "^5.100.5",
     "@trpc/client": "catalog:",

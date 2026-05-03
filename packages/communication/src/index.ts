@@ -7,11 +7,6 @@ export interface TranslationResult {
   metadata?: Record<string, any>;
 }
 
-export interface GestureMapping {
-  gesture: string;
-  phrase: string;
-}
-
 // --- Provider Interfaces ---
 
 export interface SpeechToTextProvider {
@@ -38,7 +33,13 @@ export interface GestureProvider {
 }
 
 // --- Core Logic ---
-export { GESTURE_MAPPINGS, getSignSequence } from "./gestures";
+export {
+  GESTURE_MAPPINGS,
+  getSignSequence,
+  type GestureMapping,
+  type DetectionMetadata,
+  type HandLandmark,
+} from "@sensa-monorepo/communication-core";
 export { createSpeechRecognizer } from "./speech-to-text";
 export { createSpeechSynthesizer } from "./text-to-speech";
 export { createGestureDetector } from "./gesture-to-text";

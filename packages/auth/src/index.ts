@@ -4,7 +4,7 @@ import { env } from "@sensa-monorepo/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-let _auth: ReturnType<typeof betterAuth>;
+let _auth: any;
 
 export const getAuth = () => {
   if (!_auth) {

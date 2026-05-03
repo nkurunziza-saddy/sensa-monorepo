@@ -2,29 +2,14 @@
 
 import * as React from "react";
 import { useConversation } from "@elevenlabs/react";
-import {
-  ArrowUpIcon,
-  ChevronDown,
-  Keyboard,
-  Mic,
-  MicOff,
-  PhoneIcon,
-  XIcon,
-} from "lucide-react";
+import { ArrowUpIcon, ChevronDown, Keyboard, Mic, MicOff, PhoneIcon, XIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import SmoothButton from "@/components/ui/smoothui/smooth-button";
-import { Card } from "@/components/ui/card";
-import { LiveWaveform } from "@/components/ui/live-waveform";
+import { cn, SmoothButton, Card, LiveWaveform } from "@sensa-monorepo/ui";
 import { Separator, Textarea, Box, HStack } from "@chakra-ui/react";
 import { trpc } from "@/utils/trpc";
 import { useQueryClient } from "@tanstack/react-query";
 
-export type AgentConnectionState =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "disconnecting";
+export type AgentConnectionState = "disconnected" | "connecting" | "connected" | "disconnecting";
 
 export interface ConversationBarProps {
   agentId: string;
@@ -36,29 +21,17 @@ export interface ConversationBarProps {
   onSendMessage?: (message: string) => void;
 }
 
-export const ConversationBar = React.forwardRef<
-  HTMLDivElement,
-  ConversationBarProps
->(
+export const ConversationBar = React.forwardRef<HTMLDivElement, ConversationBarProps>(
   (
-    {
-      agentId: _agentId,
-      className,
-      onConnect,
-      onDisconnect,
-      onError,
-      onMessage,
-      onSendMessage,
-    },
+    { agentId: _agentId, className, onConnect, onDisconnect, onError, onMessage, onSendMessage },
     ref,
   ) => {
     const [isMuted, setIsMuted] = React.useState(false);
-    const [agentState, setAgentState] =
-      React.useState<AgentConnectionState>("disconnected");
+    const [agentState, setAgentState] = React.useState<AgentConnectionState>("disconnected");
     const [keyboardOpen, setKeyboardOpen] = React.useState(false);
     const [textInput, setTextInput] = React.useState("");
     const mediaStreamRef = React.useRef<MediaStream | null>(null);
-    
+
     // Using the hook inside the component
     const queryClient = useQueryClient();
 
@@ -81,9 +54,7 @@ export const ConversationBar = React.forwardRef<
         const errorObj =
           error instanceof Error
             ? error
-            : new Error(
-                typeof error === "string" ? error : JSON.stringify(error),
-              );
+            : new Error(typeof error === "string" ? error : JSON.stringify(error));
         onError?.(errorObj);
       },
     });
@@ -107,8 +78,7 @@ export const ConversationBar = React.forwardRef<
 
         await conversation.startSession({
           signedUrl,
-          onStatusChange: (status) =>
-            setAgentState(status.status as AgentConnectionState),
+          onStatusChange: (status) => setAgentState(status.status as AgentConnectionState),
         });
       } catch (error) {
         console.error("Error starting conversation:", error);
@@ -178,10 +148,7 @@ export const ConversationBar = React.forwardRef<
     }, []);
 
     return (
-      <Box
-        ref={ref}
-        className={cn("flex w-full items-end justify-center", className)}
-      >
+      <Box ref={ref} className={cn("flex w-full items-end justify-center", className)}>
         <Card className="m-0 w-full overflow-hidden border border-hairline bg-canvas shadow-none rounded-clay-xl">
           <Box display="flex" flexDirection="column-reverse">
             <Box>
@@ -239,10 +206,7 @@ export const ConversationBar = React.forwardRef<
                     size="icon"
                     onClick={toggleMute}
                     disabled={!isConnected}
-                    className={cn(
-                      "rounded-full",
-                      isMuted && "bg-brand-pink/10 text-brand-pink",
-                    )}
+                    className={cn("rounded-full", isMuted && "bg-brand-pink/10 text-brand-pink")}
                   >
                     {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
                   </SmoothButton>
@@ -253,23 +217,11 @@ export const ConversationBar = React.forwardRef<
                     disabled={!isConnected}
                     className="rounded-full"
                   >
-                    {keyboardOpen ? (
-                      <ChevronDown size={18} />
-                    ) : (
-                      <Keyboard size={18} />
-                    )}
+                    {keyboardOpen ? <ChevronDown size={18} /> : <Keyboard size={18} />}
                   </SmoothButton>
-                  <Separator
-                    orientation="vertical"
-                    h="6"
-                    borderColor="hairline"
-                  />
+                  <Separator orientation="vertical" h="6" borderColor="hairline" />
                   <SmoothButton
-                    variant={
-                      isConnected || agentState === "connecting"
-                        ? "destructive"
-                        : "default"
-                    }
+                    variant={isConnected || agentState === "connecting" ? "destructive" : "default"}
                     size="icon"
                     onClick={handleStartOrEnd}
                     disabled={agentState === "disconnecting"}

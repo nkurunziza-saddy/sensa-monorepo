@@ -21,13 +21,15 @@ export function createSpeechSynthesizer(
     const utterance = new SpeechSynthesisUtterance(text);
     if (voice) {
       const voices = window.speechSynthesis.getVoices();
-      const selectedVoice = voices.find((v) => v.name === voice || v.lang === voice);
+      const selectedVoice = voices.find(
+        (v: SpeechSynthesisVoice) => v.name === voice || v.lang === voice,
+      );
       if (selectedVoice) utterance.voice = selectedVoice;
     }
 
     utterance.onstart = () => startCallback();
     utterance.onend = () => endCallback();
-    utterance.onerror = (e) => errorCallback(new Error(e.error));
+    utterance.onerror = (e: SpeechSynthesisErrorEvent) => errorCallback(new Error(e.error));
 
     window.speechSynthesis.speak(utterance);
   };
@@ -85,4 +87,3 @@ export function createSpeechSynthesizer(
     },
   };
 }
-

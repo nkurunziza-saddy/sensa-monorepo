@@ -15,27 +15,22 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { motion } from "motion/react";
-import { 
-  ArrowRight, 
-  Captions, 
-  Eye, 
-  Mic, 
-  User, 
-  Volume2, 
-  LayoutDashboard, 
-  Hand, 
-  Zap, 
-  Globe, 
-  Shield,
-  CheckCircle2
+import {
+  ArrowRight,
+  Captions,
+  Eye,
+  Mic,
+  User,
+  Volume2,
+  LayoutDashboard,
+  Hand,
+  Zap,
+  CheckCircle2,
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 
-import { Orb, type AgentState } from "@/components/ui/orb";
-import { ScrambleText } from "@/components/ui/scramble-text";
-import { Card } from "@/components/ui/card";
-import SmoothButton from "@/components/ui/smoothui/smooth-button";
+import { Orb, type AgentState, ScrambleText, Card, SmoothButton } from "@sensa-monorepo/ui";
 
 const MotionBox = motion(Box);
 
@@ -52,14 +47,16 @@ const modes: Array<{
     id: "visual",
     title: "Not Seeing",
     description: "Voice-forward interaction with clear spoken guidance.",
-    detail: "Prioritizes audio cues and assistant speech when the screen cannot carry the conversation.",
+    detail:
+      "Prioritizes audio cues and assistant speech when the screen cannot carry the conversation.",
     icon: <Eye size={18} strokeWidth={1.5} />,
   },
   {
     id: "vocal",
     title: "Not Speaking",
     description: "Gesture and text become the primary bridge.",
-    detail: "Large controls and camera-assisted input reduce the pressure to speak to be understood.",
+    detail:
+      "Large controls and camera-assisted input reduce the pressure to speak to be understood.",
     icon: <Mic size={18} strokeWidth={1.5} />,
   },
   {
@@ -73,7 +70,8 @@ const modes: Array<{
     id: "none",
     title: "Standard",
     description: "Keeps everyone in the same shared interaction model.",
-    detail: "Sensa stays useful even without an access barrier by keeping the bridge explicit and calm.",
+    detail:
+      "Sensa stays useful even without an access barrier by keeping the bridge explicit and calm.",
     icon: <User size={18} strokeWidth={1.5} />,
   },
 ];
@@ -146,7 +144,12 @@ export default function LandingClientPage() {
                     shadow="sm"
                   >
                     <Box w="2" h="2" rounded="full" bg="brand-pink" />
-                    <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.15em">
+                    <Text
+                      fontSize="10px"
+                      fontWeight="700"
+                      textTransform="uppercase"
+                      letterSpacing="0.15em"
+                    >
                       Clay Refined • Accessibility Without Boundaries
                     </Text>
                   </HStack>
@@ -161,8 +164,8 @@ export default function LandingClientPage() {
                       <ScrambleText text="A quieter way to keep two people understood." />
                     </Heading>
                     <Text maxW="580px" fontSize="17px" lineHeight="1.6" color="body">
-                      Sensa is the world's first unified translation layer connecting Speech, 
-                      Sign Language, and Text in one seamless, adaptive experience.
+                      Sensa is the world's first unified translation layer connecting Speech, Sign
+                      Language, and Text in one seamless, adaptive experience.
                     </Text>
                   </VStack>
 
@@ -191,7 +194,14 @@ export default function LandingClientPage() {
                           <Text fontSize="20px" fontWeight="600" letterSpacing="-0.02em">
                             {stat.value}
                           </Text>
-                          <Text mt={1} fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">
+                          <Text
+                            mt={1}
+                            fontSize="10px"
+                            fontWeight="700"
+                            textTransform="uppercase"
+                            letterSpacing="0.1em"
+                            color="muted"
+                          >
                             {stat.label}
                           </Text>
                         </Card>
@@ -212,7 +222,13 @@ export default function LandingClientPage() {
                   <VStack align="stretch" gap={6}>
                     <HStack justify="space-between" align="center">
                       <VStack align="start" gap={0}>
-                        <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">
+                        <Text
+                          fontSize="10px"
+                          fontWeight="700"
+                          textTransform="uppercase"
+                          letterSpacing="0.1em"
+                          color="muted"
+                        >
                           Interface Demo
                         </Text>
                         <Heading fontSize="22px" fontWeight="500">
@@ -249,7 +265,12 @@ export default function LandingClientPage() {
                           borderColor="hairline-soft"
                         >
                           <HStack justify="space-between" align="center" mb={1.5}>
-                            <Text fontSize="9px" fontWeight="800" textTransform="uppercase" letterSpacing="0.1em">
+                            <Text
+                              fontSize="9px"
+                              fontWeight="800"
+                              textTransform="uppercase"
+                              letterSpacing="0.1em"
+                            >
                               {item.speaker}
                             </Text>
                             <Badge size="sm" variant="subtle" colorPalette="gray" fontSize="8px">
@@ -271,26 +292,36 @@ export default function LandingClientPage() {
           {/* Features Section */}
           <VStack gap={12} align="stretch">
             <VStack align="start" gap={3} maxW="600px">
-              <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.2em" color="brand-pink">
+              <Text
+                fontSize="10px"
+                fontWeight="700"
+                textTransform="uppercase"
+                letterSpacing="0.2em"
+                color="brand-pink"
+              >
                 Core Capabilities
               </Text>
-              <Heading fontSize={{ base: "2.2rem", md: "3rem" }} fontWeight="500" letterSpacing="-0.03em">
+              <Heading
+                fontSize={{ base: "2.2rem", md: "3rem" }}
+                fontWeight="500"
+                letterSpacing="-0.03em"
+              >
                 Everything you need to stay connected.
               </Heading>
             </VStack>
 
             <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<LayoutDashboard size={24} />}
                 title="Unified Hub"
                 description="The Command Center for all communication. Type, speak, or sign without ever leaving the page."
               />
-              <FeatureCard 
+              <FeatureCard
                 icon={<Hand size={24} />}
                 title="Sign Lab"
                 description="Advanced hand-landmark detection powered by MediaPipe. Real-time recognition via your camera."
               />
-              <FeatureCard 
+              <FeatureCard
                 icon={<Mic size={24} />}
                 title="Speech Core"
                 description="Ultra-low latency transcription using Groq and Whisper, bridged with neural text-to-speech."
@@ -301,29 +332,46 @@ export default function LandingClientPage() {
           {/* Adaptation Modes */}
           <Grid templateColumns={{ base: "1fr", lg: "320px 1fr" }} gap={12} alignItems="start">
             <VStack align="start" gap={5} position={{ lg: "sticky" }} top="100px">
-              <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.15em" color="muted">
+              <Text
+                fontSize="10px"
+                fontWeight="700"
+                textTransform="uppercase"
+                letterSpacing="0.15em"
+                color="muted"
+              >
                 Adaptive Access
               </Text>
-              <Heading fontSize={{ base: "2rem", md: "2.8rem" }} fontWeight="500" letterSpacing="-0.04em" lineHeight="1.1">
+              <Heading
+                fontSize={{ base: "2rem", md: "2.8rem" }}
+                fontWeight="500"
+                letterSpacing="-0.04em"
+                lineHeight="1.1"
+              >
                 Interfaces that change for the people.
               </Heading>
               <Text fontSize="15px" lineHeight="1.6" color="body">
-                Sensa adapts the interface to the people in the conversation. 
-                Instead of asking one side to work around a barrier, it changes the bridge itself.
+                Sensa adapts the interface to the people in the conversation. Instead of asking one
+                side to work around a barrier, it changes the bridge itself.
               </Text>
-              
+
               <VStack align="start" gap={3} pt={4}>
                 <HStack gap={3}>
                   <CheckCircle2 size={16} color="var(--color-brand-teal)" />
-                  <Text fontSize="14px" fontWeight="600">Real-time Sign Detection</Text>
+                  <Text fontSize="14px" fontWeight="600">
+                    Real-time Sign Detection
+                  </Text>
                 </HStack>
                 <HStack gap={3}>
                   <CheckCircle2 size={16} color="var(--color-brand-teal)" />
-                  <Text fontSize="14px" fontWeight="600">Groq Whisper STT</Text>
+                  <Text fontSize="14px" fontWeight="600">
+                    Groq Whisper STT
+                  </Text>
                 </HStack>
                 <HStack gap={3}>
                   <CheckCircle2 size={16} color="var(--color-brand-teal)" />
-                  <Text fontSize="14px" fontWeight="600">Multimodal Neural TTS</Text>
+                  <Text fontSize="14px" fontWeight="600">
+                    Multimodal Neural TTS
+                  </Text>
                 </HStack>
               </VStack>
             </VStack>
@@ -336,7 +384,10 @@ export default function LandingClientPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
-                  <Card p={6} className="shadow-none border-hairline bg-white h-full hover:border-primary transition-all duration-300">
+                  <Card
+                    p={6}
+                    className="shadow-none border-hairline bg-white h-full hover:border-primary transition-all duration-300"
+                  >
                     <VStack align="start" gap={5}>
                       <Center
                         w="10"
@@ -369,24 +420,38 @@ export default function LandingClientPage() {
 
           {/* Bottom CTA & Status */}
           <VStack gap={6}>
-            <Card p={{ base: 8, md: 10 }} className="shadow-none border-hairline-soft bg-surface-soft/30 w-full overflow-hidden position-relative">
-              <Box 
-                position="absolute" 
-                top="-50%" 
-                right="-10%" 
-                w="300px" 
-                h="300px" 
-                bg="radial-gradient(circle, rgba(255, 77, 139, 0.05), transparent 70%)" 
+            <Card
+              p={{ base: 8, md: 10 }}
+              className="shadow-none border-hairline-soft bg-surface-soft/30 w-full overflow-hidden position-relative"
+            >
+              <Box
+                position="absolute"
+                top="-50%"
+                right="-10%"
+                w="300px"
+                h="300px"
+                bg="radial-gradient(circle, rgba(255, 77, 139, 0.05), transparent 70%)"
                 pointerEvents="none"
               />
-              
+
               <Grid templateColumns={{ base: "1fr", md: "1fr auto" }} gap={8} alignItems="center">
                 <GridItem>
                   <VStack align="start" gap={4}>
-                    <Text fontSize="10px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em" color="muted">
+                    <Text
+                      fontSize="10px"
+                      fontWeight="700"
+                      textTransform="uppercase"
+                      letterSpacing="0.1em"
+                      color="muted"
+                    >
                       Start your conversation
                     </Text>
-                    <Heading fontSize={{ base: "1.8rem", md: "2.4rem" }} fontWeight="500" letterSpacing="-0.03em" lineHeight="1.2">
+                    <Heading
+                      fontSize={{ base: "1.8rem", md: "2.4rem" }}
+                      fontWeight="500"
+                      letterSpacing="-0.03em"
+                      lineHeight="1.2"
+                    >
                       Ready to break communication barriers? <br />
                       Launch the bridge setup now.
                     </Heading>
@@ -405,14 +470,31 @@ export default function LandingClientPage() {
             </Card>
 
             <Card p={6} className="shadow-none border-hairline-soft bg-canvas w-full">
-              <Flex direction={{ base: "column", md: "row" }} align="center" justify="space-between" gap={8}>
+              <Flex
+                direction={{ base: "column", md: "row" }}
+                align="center"
+                justify="space-between"
+                gap={8}
+              >
                 <HStack gap={6}>
-                  <Center w={12} h={12} bg="surface-soft" rounded="full" color="brand-pink" border="1px solid" borderColor="hairline-soft">
+                  <Center
+                    w={12}
+                    h={12}
+                    bg="surface-soft"
+                    rounded="full"
+                    color="brand-pink"
+                    border="1px solid"
+                    borderColor="hairline-soft"
+                  >
                     <Zap size={24} />
                   </Center>
                   <VStack align="start" gap={0}>
-                    <Text fontWeight="600" fontSize="16px">System Integrity</Text>
-                    <Text color="muted" fontSize="13px">Backend services status</Text>
+                    <Text fontWeight="600" fontSize="16px">
+                      System Integrity
+                    </Text>
+                    <Text color="muted" fontSize="13px">
+                      Backend services status
+                    </Text>
                   </VStack>
                 </HStack>
 
@@ -424,9 +506,19 @@ export default function LandingClientPage() {
                     px={4}
                     py={1}
                   >
-                    {healthCheck.isLoading ? "Probing..." : healthCheck.data ? "Connected" : "Offline"}
+                    {healthCheck.isLoading
+                      ? "Probing..."
+                      : healthCheck.data
+                        ? "Connected"
+                        : "Offline"}
                   </Badge>
-                  <Text fontSize="11px" fontWeight="700" color="muted" letterSpacing="0.1em" textTransform="uppercase">
+                  <Text
+                    fontSize="11px"
+                    fontWeight="700"
+                    color="muted"
+                    letterSpacing="0.1em"
+                    textTransform="uppercase"
+                  >
                     v1.2.0-MVP
                   </Text>
                 </HStack>
@@ -439,16 +531,39 @@ export default function LandingClientPage() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
-    <Card p={6} className="shadow-none border-hairline bg-white h-full hover:border-brand-pink transition-all duration-300">
+    <Card
+      p={6}
+      className="shadow-none border-hairline bg-white h-full hover:border-brand-pink transition-all duration-300"
+    >
       <VStack align="start" gap={5}>
-        <Center w={10} h={10} bg="surface-soft" rounded="clay-sm" color="brand-pink" border="1px solid" borderColor="hairline-soft">
+        <Center
+          w={10}
+          h={10}
+          bg="surface-soft"
+          rounded="clay-sm"
+          color="brand-pink"
+          border="1px solid"
+          borderColor="hairline-soft"
+        >
           {icon}
         </Center>
         <VStack align="start" gap={2}>
-          <Heading fontSize="18px" fontWeight="600">{title}</Heading>
-          <Text fontSize="14px" lineHeight="1.6" color="body">{description}</Text>
+          <Heading fontSize="18px" fontWeight="600">
+            {title}
+          </Heading>
+          <Text fontSize="14px" lineHeight="1.6" color="body">
+            {description}
+          </Text>
         </VStack>
       </VStack>
     </Card>

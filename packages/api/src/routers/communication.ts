@@ -125,8 +125,8 @@ export const communicationRouter = router({
     .input(z.object({ conversationId: z.string() }))
     .query(async ({ input }) => {
       const results = await db.query.message.findMany({
-        where: eq(message.conversationId, input.conversationId),
-        orderBy: (message, { asc }) => [asc(message.createdAt)],
+        where: (m, { eq }) => eq(m.conversationId, input.conversationId),
+        orderBy: (m, { asc }) => [asc(m.createdAt)],
       });
       return results;
     }),

@@ -1,8 +1,8 @@
 "use client";
 
-import { Box } from "@chakra-ui/react";
+import { Box, Spinner } from "@chakra-ui/react";
 import type { BoxProps } from "@chakra-ui/react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -35,24 +35,26 @@ const smoothButtonVariants = cva(
 
 export interface SmoothButtonProps extends BoxProps, VariantProps<typeof smoothButtonVariants> {
   disabled?: boolean;
+  loading?: boolean;
 }
 
-const SmoothButton = React.forwardRef<HTMLButtonElement, SmoothButtonProps>(
-  ({ className, variant, size, disabled, ...props }, ref) => {
+export const SmoothButton = React.forwardRef<HTMLButtonElement, SmoothButtonProps>(
+  ({ className, variant, size, disabled, loading, children, ...props }, ref) => {
     return (
       <Box
         as="button"
         ref={ref}
-        {...({ disabled } as any)}
+        {...({ disabled: disabled || loading } as any)}
         _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
         className={cn(smoothButtonVariants({ variant, size, className }))}
         {...props}
-      />
+      >
+        {loading ? <Spinner size="xs" color="currentColor" /> : children}
+      </Box>
     );
   },
 );
 
 SmoothButton.displayName = "SmoothButton";
 
-export default SmoothButton;
 export { smoothButtonVariants };

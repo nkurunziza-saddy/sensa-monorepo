@@ -30,21 +30,25 @@ function getAngle(a: HandLandmark, b: HandLandmark, c: HandLandmark): number {
   const v1 = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
   const v2 = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z };
   const dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-  const mag1 = Math.sqrt(v1.x**2 + v1.y**2 + v1.z**2);
-  const mag2 = Math.sqrt(v2.x**2 + v2.y**2 + v2.z**2);
+  const mag1 = Math.sqrt(v1.x ** 2 + v1.y ** 2 + v1.z ** 2);
+  const mag2 = Math.sqrt(v2.x ** 2 + v2.y ** 2 + v2.z ** 2);
   return Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2)))) * (180 / Math.PI);
 }
 
-export function detectGesture(landmarks: HandLandmark[]): { gesture: string | null; metadata: DetectionMetadata } {
+export function detectGesture(landmarks: HandLandmark[]): {
+  gesture: string | null;
+  metadata: DetectionMetadata;
+} {
   const metadata: DetectionMetadata = {
     isCentered: false,
     distance: "ideal",
     handFound: !!(landmarks && landmarks.length >= 21),
     orientation: "upright",
-    confidence: 0
+    confidence: 0,
   };
 
-  if (!metadata.handFound) return { gesture: null, metadata };
+  if (!metadata.handFound || !landmarks[0] || !landmarks[9] || !landmarks[5] || !landmarks[17])
+    return { gesture: null, metadata };
 
   // 1. Normalize and Analyze Palm Orientation
   const wrist = landmarks[0];
@@ -59,7 +63,7 @@ export function detectGesture(landmarks: HandLandmark[]): { gesture: string | nu
   metadata.isCentered = wrist.x > 0.2 && wrist.x < 0.8 && wrist.y > 0.15 && wrist.y < 0.85;
   if (handScale < 0.11) metadata.distance = "far";
   else if (handScale > 0.28) metadata.distance = "near";
-  
+
   // Orientation (Vector from wrist to middle base)
   const dy = wrist.y - middleBase.y;
   const dx = wrist.x - middleBase.x;
@@ -69,11 +73,16 @@ export function detectGesture(landmarks: HandLandmark[]): { gesture: string | nu
   // 2. Advanced Finger State Logic
   // A finger is "Extended" if its joint angle is near 180 degrees AND its tip is far from the palm
   const checkFinger = (mcp: number, pip: number, tip: number) => {
-    const angle = getAngle(landmarks[mcp], landmarks[pip], landmarks[tip]);
-    const tipToWrist = getDist(landmarks[tip], wrist);
-    const pipToWrist = getDist(landmarks[pip], wrist);
-    const tipToMcp = getDist(landmarks[tip], landmarks[mcp]);
-    const pipToMcp = getDist(landmarks[pip], landmarks[mcp]);
+    const mcpL = landmarks[mcp];
+    const pipL = landmarks[pip];
+    const tipL = landmarks[tip];
+    if (!mcpL || !pipL || !tipL) return false;
+
+    const angle = getAngle(mcpL, pipL, tipL);
+    const tipToWrist = getDist(tipL, wrist);
+    const pipToWrist = getDist(pipL, wrist);
+    const tipToMcp = getDist(tipL, mcpL);
+    const pipToMcp = getDist(pipL, mcpL);
     const isLongEnough = tipToWrist > pipToWrist + handScale * 0.2;
     const isOpen = angle > 155 && tipToMcp > pipToMcp * 1.15;
     return isOpen && isLongEnough;
@@ -85,22 +94,30 @@ export function detectGesture(landmarks: HandLandmark[]): { gesture: string | nu
   const pinkyOut = checkFinger(17, 18, 20);
 
   // Thumb is special (angle between thumb tip, thumb base, and index base)
-  const thumbAngle = getAngle(landmarks[4], landmarks[2], landmarks[5]);
-  const thumbToPalm = getDist(landmarks[4], indexBase);
-  const thumbKnuckleToPalm = getDist(landmarks[2], indexBase);
+  const thumbBase = landmarks[2];
+  const thumbTip = landmarks[4];
+  if (!thumbBase || !thumbTip) return { gesture: null, metadata };
+
+  const thumbAngle = getAngle(thumbTip, thumbBase, indexBase);
+  const thumbToPalm = getDist(thumbTip, indexBase);
+  const thumbKnuckleToPalm = getDist(thumbBase, indexBase);
   const thumbOut = thumbAngle > 30 && thumbToPalm > thumbKnuckleToPalm + handScale * 0.18;
 
-  const indexMiddleGap = getDist(landmarks[8], landmarks[12]) / handScale;
-  const thumbIndexGap = getDist(landmarks[4], landmarks[8]) / handScale;
-  const thumbTipAboveWrist = landmarks[4].y < wrist.y - handScale * 0.15;
-  const thumbTipBelowWrist = landmarks[4].y > wrist.y + handScale * 0.1;
-  const thumbDominant = Math.abs(landmarks[4].x - landmarks[2].x) > handScale * 0.35;
+  const indexTip = landmarks[8];
+  const middleTip = landmarks[12];
+  if (!indexTip || !middleTip) return { gesture: null, metadata };
+
+  const indexMiddleGap = getDist(indexTip, middleTip) / handScale;
+  const thumbIndexGap = getDist(thumbTip, indexTip) / handScale;
+  const thumbTipAboveWrist = thumbTip.y < wrist.y - handScale * 0.15;
+  const thumbTipBelowWrist = thumbTip.y > wrist.y + handScale * 0.1;
+  const thumbDominant = Math.abs(thumbTip.x - thumbBase.x) > handScale * 0.35;
 
   let gesture: string | null = null;
   let conf = 0;
 
   // 3. GESTURE PROTOTYPE MATCHING
-  
+
   // Peace Sign (Index & Middle)
   if (indexOut && middleOut && !ringOut && !pinkyOut && indexMiddleGap > 0.24) {
     gesture = "peace_sign";
@@ -109,11 +126,11 @@ export function detectGesture(landmarks: HandLandmark[]): { gesture: string | nu
   // Thumbs Up (Requires orientation check)
   else if (thumbOut && !indexOut && !middleOut && !ringOut && !pinkyOut && thumbDominant) {
     if (metadata.orientation !== "inverted" && thumbTipAboveWrist) {
-       gesture = "thumbs_up";
-       conf = 0.88;
+      gesture = "thumbs_up";
+      conf = 0.88;
     } else if (thumbTipBelowWrist) {
-       gesture = "thumbs_down";
-       conf = 0.88;
+      gesture = "thumbs_down";
+      conf = 0.88;
     }
   }
   // Open Palm / Hello
@@ -153,6 +170,8 @@ export function detectGesture(landmarks: HandLandmark[]): { gesture: string | nu
 export function drawHand(ctx: CanvasRenderingContext2D, landmarks: HandLandmark[]) {
   const outline = [0, 1, 2, 3, 4, 8, 12, 16, 20, 19, 18, 17];
   const wrist = landmarks[0];
+  if (!wrist) return;
+
   const isCentered = wrist.x > 0.3 && wrist.x < 0.7 && wrist.y > 0.2 && wrist.y < 0.8;
 
   ctx.save();
@@ -166,6 +185,7 @@ export function drawHand(ctx: CanvasRenderingContext2D, landmarks: HandLandmark[
   ctx.beginPath();
   outline.forEach((pointIndex, index) => {
     const point = landmarks[pointIndex];
+    if (!point) return;
     const x = point.x * ctx.canvas.width;
     const y = point.y * ctx.canvas.height;
     if (index === 0) {

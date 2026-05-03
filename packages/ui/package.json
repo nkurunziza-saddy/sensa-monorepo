@@ -1,11 +1,17 @@
 {
-  "name": "bridge",
+  "name": "@sensa-monorepo/ui",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./components/smoothui/*": "./src/components/smoothui/*.tsx",
+    "./components/smoothui/smooth-button": "./src/components/smoothui/smooth-button/index.tsx",
+    "./components/smoothui/siri-orb": "./src/components/smoothui/siri-orb/index.tsx",
+    "./lib/*": "./src/lib/*.ts"
+  },
   "scripts": {
-    "dev": "next dev --port 3002",
-    "build": "next build",
-    "start": "next start",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -13,33 +19,20 @@
     "@emotion/react": "^11.14.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@sensa-monorepo/api": "workspace:*",
-    "@sensa-monorepo/communication": "workspace:*",
-    "@sensa-monorepo/env": "workspace:*",
-    "@sensa-monorepo/ui": "workspace:*",
-    "@tanstack/react-query": "^5.62.7",
-    "@trpc/client": "^11.0.0-rc.666",
-    "@trpc/react-query": "^11.0.0-rc.666",
-    "@trpc/tanstack-react-query": "^11.0.0-rc.666",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.11.0",
     "motion": "^12.38.0",
-    "next": "^16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "sonner": "^1.7.1",
     "tailwind-merge": "^3.5.0",
     "three": "^0.184.0"
   },
   "devDependencies": {
     "@sensa-monorepo/config": "workspace:*",
-    "@tailwindcss/postcss": "^4.2.4",
-    "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.184.0",
-    "tailwindcss": "^4.2.4",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   }
 }

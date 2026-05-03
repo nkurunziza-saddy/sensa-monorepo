@@ -9,9 +9,13 @@
       "default": "./src/*.ts"
     }
   },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
+    "@sensa-monorepo/communication-core": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

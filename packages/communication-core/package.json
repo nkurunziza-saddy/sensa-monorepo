@@ -1,0 +1,21 @@
+{
+  "name": "@sensa-monorepo/communication-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Internal core logic for Sensa communication modalities. Not for public use.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sensa-monorepo/config": "workspace:*",
+    "typescript": "^6.0.3"
+  }
+}

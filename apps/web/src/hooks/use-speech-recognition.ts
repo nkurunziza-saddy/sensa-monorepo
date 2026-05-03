@@ -20,7 +20,7 @@ export function useSpeechRecognition() {
     [hapticFeedback],
   );
 
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     setError(null);
     vibrate(50);
 
@@ -44,7 +44,7 @@ export function useSpeechRecognition() {
     });
 
     recognizerRef.current = recognizer;
-    recognizer.start();
+    await recognizer.start();
     setIsListening(true);
   }, [vibrate]);
 

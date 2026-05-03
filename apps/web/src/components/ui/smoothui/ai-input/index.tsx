@@ -1,9 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, SiriOrb } from "@sensa-monorepo/ui";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import React from "react";
-import SiriOrb from "@/components/ui/smoothui/siri-orb";
 import { useClickOutside } from "@/components/ui/smoothui/ai-input/use-click-outside";
 import { trpc } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";

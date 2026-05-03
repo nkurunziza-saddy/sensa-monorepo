@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { createGestureDetector, GESTURE_MAPPINGS } from "@sensa-monorepo/communication";
-import type { DetectionMetadata } from "@sensa-monorepo/communication/hand-gestures";
+import {
+  createGestureDetector,
+  GESTURE_MAPPINGS,
+  type DetectionMetadata,
+} from "@sensa-monorepo/communication";
 import { useAccessibilitySettings } from "./use-accessibility-settings";
 
 export function useGestureDetection(
@@ -42,7 +45,7 @@ export function useGestureDetection(
     if (detectorRef.current) {
       detectorRef.current.stop();
     }
-    
+
     isStartingRef.current = true;
     setError(null);
     setDetectedGesture(null);
@@ -94,7 +97,13 @@ export function useGestureDetection(
     setIsDetecting(false);
     setError(null);
     setDetectedGesture(null);
-    setMetadata({ handFound: false, isCentered: false, distance: "ideal", orientation: "upright", confidence: 0 });
+    setMetadata({
+      handFound: false,
+      isCentered: false,
+      distance: "ideal",
+      orientation: "upright",
+      confidence: 0,
+    });
   }, []);
 
   const simulateGesture = useCallback((gestureId: string) => {

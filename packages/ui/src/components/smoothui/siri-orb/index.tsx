@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 const SIZE_THRESHOLD_SMALL = 50;
 const SIZE_THRESHOLD_TINY = 30;
@@ -41,7 +41,7 @@ export interface SiriOrbProps {
   size?: string;
 }
 
-const SiriOrb: React.FC<SiriOrbProps> = ({
+export const SiriOrb: React.FC<SiriOrbProps> = ({
   size = "192px",
   className,
   colors,

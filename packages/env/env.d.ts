@@ -5,7 +5,5 @@ declare global {
 }
 
 declare module "cloudflare:workers" {
-  namespace Cloudflare {
-    export interface Env extends CloudflareEnv {}
-  }
+  export const env: CloudflareEnv;
 }

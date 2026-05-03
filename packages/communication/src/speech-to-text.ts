@@ -7,7 +7,9 @@ export interface SpeechRecognizerOptions {
   language?: string;
 }
 
-export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): SpeechToTextProvider {
+export function createSpeechRecognizer(
+  options: SpeechRecognizerOptions = {},
+): SpeechToTextProvider {
   let recognition: any = null;
   let isStarted = false;
 
@@ -17,8 +19,9 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): S
 
   const initNative = () => {
     if (typeof window === "undefined") return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
       recognition.continuous = options.continuous ?? false;
@@ -50,7 +53,7 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): S
 
   const start = async () => {
     if (isStarted) return;
-    
+
     if (!recognition) {
       initNative();
     }
@@ -60,7 +63,9 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): S
       isStarted = true;
     } else if (options.apiUrl) {
       // Fallback to custom API implementation if native is unavailable
-      console.warn("Native SpeechRecognition not supported, custom API fallback not fully implemented in this version.");
+      console.warn(
+        "Native SpeechRecognition not supported, custom API fallback not fully implemented in this version.",
+      );
     } else {
       errorCallback(new Error("Speech recognition not supported in this browser."));
     }
@@ -87,4 +92,3 @@ export function createSpeechRecognizer(options: SpeechRecognizerOptions = {}): S
     },
   };
 }
-
