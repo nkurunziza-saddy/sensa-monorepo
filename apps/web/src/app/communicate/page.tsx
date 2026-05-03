@@ -98,7 +98,8 @@ function CommunicateContent() {
     setMessages((prev) => [...prev, newMessage]);
 
     // Accessibility: Auto-speak incoming messages if the receiver is in "visual" (Not Seeing) mode
-    const receiverCondition = sender.includes("A") ? b : a;
+    const isAssistant = sender === "Assistant";
+    const receiverCondition = isAssistant ? (activeUser === "A" ? a : b) : sender.includes("A") ? b : a;
     if (receiverCondition === "visual") {
       speak(content);
     }
