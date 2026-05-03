@@ -3,18 +3,24 @@
 import * as React from "react";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Box, Container, VStack, HStack, Text, Center } from "@chakra-ui/react";
+import { Box, Container, VStack, HStack, Text, Center, Heading } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "motion/react";
 import { AIInput } from "@/components/ui/smoothui/ai-input";
 import { VoiceInput } from "@/components/ui/smoothui/voice-input";
-import { Orb, type AgentState } from "@sensa-monorepo/ui";
-import { Eye, Mic, Volume2, User, ArrowLeft, ArrowRightLeft, Hand } from "lucide-react";
+import {
+  Orb,
+  type AgentState,
+  SmoothButton,
+  getConditionColors,
+  type Condition,
+} from "@sensa-monorepo/ui";
+import { Eye, Mic, Volume2, User, ArrowLeft, ArrowRightLeft, Hand, Trash2 } from "lucide-react";
 import NextLink from "next/link";
 import { useGestureDetection } from "@/hooks/use-gesture-detection";
+import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 
 const MotionBox = motion(Box);
 
-type Condition = "visual" | "vocal" | "auditory" | "none";
 type Message = { id: string; sender: string; content: string; time: string; modality: string };
 
 function getInitialActiveUser(a: Condition, b: Condition): "A" | "B" {
@@ -43,6 +49,8 @@ function CommunicateContent() {
     error: gestureError,
   } = useGestureDetection(videoElement || undefined, canvasElement || undefined);
 
+  const { speak } = useSpeechSynthesis();
+
   const lastGestureRef = React.useRef<string | null>(null);
 
   useEffect(() => {
@@ -61,7 +69,6 @@ function CommunicateContent() {
     let isActive = true;
 
     if (currentCondition === "vocal" && videoElement) {
-      // Small delay to allow element mounting and prevent rapid start/stop
       const timer = setTimeout(() => {
         if (isActive) startGestures();
       }, 100);
@@ -89,6 +96,12 @@ function CommunicateContent() {
       modality,
     };
     setMessages((prev) => [...prev, newMessage]);
+
+    // Accessibility: Auto-speak incoming messages if the receiver is in "visual" (Not Seeing) mode
+    const receiverCondition = sender.includes("A") ? b : a;
+    if (receiverCondition === "visual") {
+      speak(content);
+    }
   };
 
   const handleMessage = (msg: { source: "user" | "ai"; message: string }) => {
@@ -98,22 +111,23 @@ function CommunicateContent() {
       setTimeout(() => setAgentState(null), 3000);
     } else {
       setAgentState("listening");
-      if (msg.source === "user") {
-        const modality =
-          activeUser === "A"
-            ? a === "visual"
-              ? "speech"
-              : "text"
-            : b === "visual"
-              ? "speech"
-              : "text";
-        addMessage(`Person ${activeUser}`, msg.message, modality);
-      }
+      const modality =
+        activeUser === "A"
+          ? a === "visual"
+            ? "speech"
+            : "text"
+          : b === "visual"
+            ? "speech"
+            : "text";
+      addMessage(`Person ${activeUser}`, msg.message, modality);
     }
   };
 
+  const clearMessages = () => setMessages([]);
+
   return (
     <Box bg="canvas" h="calc(100vh - 64px)" display="flex" flexDirection="column" overflow="hidden">
+      {/* Header Bridge Info */}
       <Box py={4} borderBottom="1px solid" borderColor="hairline-soft" bg="canvas" zIndex={10}>
         <Container maxW="1200px">
           <HStack justify="space-between">
@@ -155,17 +169,28 @@ function CommunicateContent() {
               />
             </HStack>
 
-            <HStack gap={3} opacity={0.4}>
-              <Box w={2} h={2} rounded="full" bg="brand-teal" />
-              <Text fontSize="9px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em">
-                Live Bridge
-              </Text>
+            <HStack gap={4}>
+              <SmoothButton variant="ghost" size="sm" onClick={clearMessages} color="muted">
+                <Trash2 size={14} />
+              </SmoothButton>
+              <HStack gap={2} opacity={0.4}>
+                <Box w={2} h={2} rounded="full" bg="brand-teal" />
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  textTransform="uppercase"
+                  letterSpacing="0.1em"
+                >
+                  Live Bridge
+                </Text>
+              </HStack>
             </HStack>
           </HStack>
         </Container>
       </Box>
 
-      <Box flex="1" overflowY="auto" py={8} position="relative">
+      {/* Main Content / Feed */}
+      <Box flex="1" overflowY="auto" py={8} position="relative" className="custom-scrollbar">
         <Container maxW="800px">
           <VStack gap={10} w="full">
             <Box position="relative" w="full" display="flex" justifyContent="center">
@@ -193,10 +218,15 @@ function CommunicateContent() {
             <VStack gap={6} w="full" align="stretch">
               <AnimatePresence initial={false}>
                 {messages.length === 0 ? (
-                  <VStack gap={2} opacity={0.2} py={4}>
-                    <Text fontSize="xs" fontWeight="600">
-                      Multimodal stream initialized
-                    </Text>
+                  <VStack gap={4} opacity={0.4} py={12} textAlign="center">
+                    <VStack gap={1}>
+                      <Heading fontSize="md" fontWeight="600">
+                        Bridge Established
+                      </Heading>
+                      <Text fontSize="sm">
+                        Waiting for Person {activeUser} to {getConditionActionLabel(currentCondition)}
+                      </Text>
+                    </VStack>
                     <Box w="1" h="1" rounded="full" bg="primary" />
                   </VStack>
                 ) : (
@@ -216,6 +246,7 @@ function CommunicateContent() {
         </Container>
       </Box>
 
+      {/* Interaction Layer */}
       <Box
         bg="rgba(255, 250, 240, 0.9)"
         backdropFilter="blur(30px)"
@@ -239,7 +270,7 @@ function CommunicateContent() {
                   <Box
                     w="full"
                     maxW="480px"
-                    aspectRatio={16 / 9}
+                    aspectRatio={4 / 3}
                     bg="primary"
                     rounded="clay-md"
                     overflow="hidden"
@@ -262,7 +293,7 @@ function CommunicateContent() {
                     <canvas
                       ref={setCanvasElement}
                       width={640}
-                      height={360}
+                      height={480}
                       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
                     />
                     {!isDetecting && (
@@ -445,19 +476,6 @@ function MessageBubble({
   );
 }
 
-function getConditionColors(condition: Condition): [string, string] {
-  switch (condition) {
-    case "visual":
-      return ["#ff4d8b", "#ffb084"];
-    case "vocal":
-      return ["#1a3a3a", "#a4d4c5"];
-    case "auditory":
-      return ["#b8a4ed", "#e8b94a"];
-    default:
-      return ["#0a0a0a", "#6a6a6a"];
-  }
-}
-
 function getConditionLabel(condition: Condition): string {
   switch (condition) {
     case "visual":
@@ -468,5 +486,18 @@ function getConditionLabel(condition: Condition): string {
       return "Visual Stream";
     default:
       return "Standard Access";
+  }
+}
+
+function getConditionActionLabel(condition: Condition): string {
+  switch (condition) {
+    case "visual":
+      return "speak";
+    case "vocal":
+      return "perform a gesture";
+    case "auditory":
+      return "type a message";
+    default:
+      return "interact";
   }
 }

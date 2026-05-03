@@ -3,11 +3,16 @@
 import { useState, useEffect } from "react";
 import { Box, Container, VStack, HStack, Grid, Heading, Text } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "motion/react";
-import { Orb, type AgentState, ScrambleText, SmoothButton } from "@sensa-monorepo/ui";
+import {
+  Orb,
+  type AgentState,
+  ScrambleText,
+  SmoothButton,
+  getConditionColors,
+  type Condition,
+} from "@sensa-monorepo/ui";
 import { Eye, Mic, Volume2, ArrowRight, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-type Condition = "visual" | "vocal" | "auditory" | "none";
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
@@ -227,17 +232,4 @@ function ConditionCard({
       {active && <Box ml="auto" w={1.5} h={1.5} rounded="full" bg="brand-pink" />}
     </MotionBox>
   );
-}
-
-function getConditionColors(condition: Condition): [string, string] {
-  switch (condition) {
-    case "visual":
-      return ["#ff4d8b", "#ffb084"];
-    case "vocal":
-      return ["#1a3a3a", "#a4d4c5"];
-    case "auditory":
-      return ["#b8a4ed", "#e8b94a"];
-    default:
-      return ["#0a0a0a", "#6a6a6a"];
-  }
 }
