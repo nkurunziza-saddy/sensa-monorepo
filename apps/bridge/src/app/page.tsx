@@ -1,13 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { Box, Container, VStack, HStack, Text, Heading, Spinner } from "@chakra-ui/react";
-import { Terminal, Package, Video, VideoOff, Wifi, WifiOff } from "lucide-react";
-import { SmoothButton } from "@sensa-monorepo/ui";
+import { Box, Container, VStack, HStack, Text, Heading, Spinner, Center } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "motion/react";
+import { Terminal, Video, VideoOff, Wifi, WifiOff, ArrowRight, Hand } from "lucide-react";
+import {
+  SmoothButton,
+  ScrambleText,
+  getConditionColors,
+  type Condition,
+} from "@sensa-monorepo/ui";
 import { createGestureDetector } from "@sensa-monorepo/communication";
 import { trpc } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const MotionBox = motion(Box);
 
 export default function BridgePage() {
   const [isActive, setIsActive] = React.useState(false);
@@ -92,74 +100,88 @@ export default function BridgePage() {
   };
 
   return (
-    <Box bg="canvas" minH="100vh" color="ink" py={12}>
-      <Container maxW="600px">
+    <Box bg="canvas" minH="100vh" color="ink" py={{ base: 12, md: 20 }} position="relative" overflow="hidden">
+      {/* Subtle background element consistent with landing */}
+      <Box
+        position="absolute"
+        top="-10%"
+        right="-5%"
+        w="500px"
+        h="500px"
+        bg="radial-gradient(circle, rgba(255, 77, 139, 0.03), transparent 70%)"
+        pointerEvents="none"
+      />
+
+      <Container maxW="640px" position="relative" zIndex={1}>
         {/* Header */}
-        <VStack align="start" gap={6} mb={12}>
-          <HStack gap={2} opacity={0.5}>
-            <Package size={14} />
-            <Text fontWeight="800" fontSize="10px" letterSpacing="0.1em" textTransform="uppercase">
-              @sensa-monorepo/communication
+        <VStack align="start" gap={8} mb={12}>
+          <HStack gap={3} opacity={0.5}>
+            <Text
+              fontSize="10px"
+              fontWeight="700"
+              textTransform="uppercase"
+              letterSpacing="0.2em"
+            >
+              Multimodal Bridge • Gesture V1
             </Text>
           </HStack>
 
-          <Box>
-            <Heading fontSize="22px" fontWeight="600" letterSpacing="-0.01em" mb={2}>
-              Sensa Bridge
+          <VStack align="start" gap={4} w="full">
+            <Heading fontSize={{ base: "2rem", md: "2.8rem" }} fontWeight="500" letterSpacing="-0.04em" lineHeight="1.1">
+              <ScrambleText text="Sensa Bridge" />
             </Heading>
-            <Text fontSize="14px" color="muted" lineHeight="1.5">
-              Multimodal intent publisher. Real-time gesture detection bridged to the Sensa backend.
-            </Text>
-          </Box>
-
-          <HStack gap={3}>
-            <SmoothButton
-              h="10"
-              px={5}
-              rounded="clay-md"
-              bg={isActive ? "red.500" : "ink"}
-              color="white"
-              fontSize="13px"
-              onClick={toggleBridge}
-            >
-              <HStack gap={2}>
-                {isActive ? <VideoOff size={16} /> : <Video size={16} />}
-                <Text>{isActive ? "Stop Bridge" : "Start Bridge"}</Text>
-              </HStack>
-            </SmoothButton>
-
-            <HStack
-              gap={2}
-              px={3}
-              py={1}
-              rounded="full"
-              bg="surface-soft"
-              border="1px solid"
-              borderColor="hairline"
-            >
-              {conversationId ? (
-                <Wifi size={12} className="text-green-500" />
-              ) : (
-                <WifiOff size={12} className="text-red-500" />
-              )}
-              <Text fontSize="10px" fontWeight="800" opacity={0.6}>
-                {conversationId ? "CONNECTED" : "OFFLINE"}
+            <HStack justify="space-between" w="full" align="flex-end">
+              <Text fontSize="15px" color="muted" maxW="400px" lineHeight="1.5">
+                Real-time gesture detection bridged to the Sensa communication layer.
               </Text>
+              
+              <HStack
+                gap={2}
+                px={3}
+                py={1}
+                rounded="full"
+                bg="surface-soft"
+                border="1px solid"
+                borderColor="hairline-soft"
+              >
+                {conversationId ? (
+                  <Wifi size={10} color="var(--color-brand-teal)" />
+                ) : (
+                  <WifiOff size={10} color="var(--color-brand-pink)" />
+                )}
+                <Text fontSize="9px" fontWeight="800" opacity={0.6} letterSpacing="0.05em">
+                  {conversationId ? "LIVE" : "OFFLINE"}
+                </Text>
+              </HStack>
             </HStack>
-          </HStack>
+          </VStack>
+
+          <SmoothButton
+            variant={isActive ? "destructive" : "default"}
+            h="12"
+            px={8}
+            rounded="clay-md"
+            onClick={toggleBridge}
+          >
+            <HStack gap={2}>
+              {isActive ? <VideoOff size={18} /> : <Video size={18} />}
+              <Text>{isActive ? "Terminate Bridge" : "Initialize Bridge"}</Text>
+            </HStack>
+          </SmoothButton>
         </VStack>
 
-        {/* Camera Feed */}
+        {/* Camera Feed Container */}
         <Box
           position="relative"
           w="full"
           aspectRatio={4 / 3}
-          bg="black"
+          bg="ink"
           rounded="clay-lg"
           overflow="hidden"
           border="1px solid"
-          borderColor="hairline-soft"
+          borderColor="hairline"
           mb={8}
+          shadow="sm"
         >
           <video
             ref={videoRef}
@@ -186,92 +208,126 @@ export default function BridgePage() {
             }}
           />
 
-          {!isActive && (
-            <VStack
-              position="absolute"
-              inset={0}
-              justify="center"
-              bg="black/40"
-              backdropFilter="blur(8px)"
-              color="white/60"
-            >
-              <Video size={48} strokeWidth={1} />
-              <Text fontSize="13px" fontWeight="600">
-                Camera Inactive
-              </Text>
-            </VStack>
-          )}
+          <AnimatePresence>
+            {!isActive && (
+              <MotionBox
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                position="absolute"
+                inset={0}
+                justifyContent="center"
+                display="flex"
+                alignItems="center"
+                bg="rgba(10, 10, 10, 0.4)"
+                backdropFilter="blur(12px)"
+                color="white/40"
+              >
+                <VStack gap={3}>
+                  <Center w="16" h="16" rounded="full" border="1px solid" borderColor="white/20">
+                    <Video size={24} strokeWidth={1.5} />
+                  </Center>
+                  <Text fontSize="12px" fontWeight="700" textTransform="uppercase" letterSpacing="0.1em">
+                    Bridge Ready
+                  </Text>
+                </VStack>
+              </MotionBox>
+            )}
+          </AnimatePresence>
 
           {isActive && !detectedGesture && (
             <Box position="absolute" top={4} left={4}>
-              <HStack gap={2} bg="black/40" backdropFilter="blur(4px)" px={3} py={1} rounded="full">
-                <Spinner size="xs" color="brand-pink" />
-                <Text fontSize="10px" fontWeight="bold" color="white/80">
-                  WAITING FOR GESTURE
+              <HStack gap={2} bg="rgba(10, 10, 10, 0.4)" backdropFilter="blur(8px)" px={3} py={1.5} rounded="full" border="1px solid" borderColor="white/10">
+                <Spinner size="xs" color="brand-pink" thickness="2px" />
+                <Text fontSize="9px" fontWeight="800" color="white/90" letterSpacing="0.05em">
+                  SCANNING GESTURES
                 </Text>
               </HStack>
             </Box>
           )}
 
-          {detectedGesture && (
-            <Box position="absolute" bottom={6} left="50%" transform="translateX(-50%)" w="80%">
-              <VStack
-                bg="white/95"
-                p={4}
-                rounded="clay-md"
-                shadow="xl"
-                gap={4}
-                border="1px solid"
-                borderColor="brand-pink/20"
+          <AnimatePresence>
+            {detectedGesture && (
+              <MotionBox
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                position="absolute"
+                bottom={6}
+                left={6}
+                right={6}
+                zIndex={10}
               >
-                <VStack gap={0}>
-                  <Text fontSize="10px" fontWeight="800" color="brand-pink" letterSpacing="widest">
-                    INTENT DETECTED
-                  </Text>
-                  <Heading fontSize="32px" fontWeight="800">
-                    {detectedGesture.phrase}
-                  </Heading>
-                </VStack>
-                <SmoothButton
-                  w="full"
-                  h="12"
-                  bg="brand-pink"
-                  color="white"
-                  rounded="clay-sm"
-                  onClick={publishIntent}
-                  loading={addMessage.isPending}
+                <Box
+                  bg="rgba(255, 255, 255, 0.95)"
+                  backdropFilter="blur(20px)"
+                  p={6}
+                  rounded="clay-md"
+                  shadow="2xl"
+                  border="1px solid"
+                  borderColor="brand-pink/20"
                 >
-                  Publish to Sensa
-                </SmoothButton>{" "}
-              </VStack>
-            </Box>
-          )}
+                  <VStack gap={5} align="start">
+                    <VStack gap={1} align="start">
+                      <Text fontSize="10px" fontWeight="800" color="brand-pink" letterSpacing="0.2em" textTransform="uppercase">
+                        Intent Detected
+                      </Text>
+                      <Heading fontSize="32px" fontWeight="500" letterSpacing="-0.02em">
+                        {detectedGesture.phrase}
+                      </Heading>
+                    </VStack>
+                    <SmoothButton
+                      w="full"
+                      h="12"
+                      bg="brand-pink"
+                      color="white"
+                      rounded="clay-sm"
+                      onClick={publishIntent}
+                      loading={addMessage.isPending}
+                    >
+                      <HStack gap={2}>
+                        <Text>Publish Intent</Text>
+                        <ArrowRight size={16} />
+                      </HStack>
+                    </SmoothButton>
+                  </VStack>
+                </Box>
+              </MotionBox>
+            )}
+          </AnimatePresence>
         </Box>
 
-        {/* Status / Log */}
+        {/* System Status - More Refined */}
         <Box
           p={6}
-          bg="surface-soft/50"
+          bg="surface-soft"
           border="1px solid"
           borderColor="hairline-soft"
           rounded="clay-md"
         >
           <HStack gap={2} mb={4} opacity={0.3}>
             <Terminal size={12} />
-            <Text fontSize="9px" fontWeight="bold" textTransform="uppercase" letterSpacing="widest">
-              bridge_status.log
+            <Text fontSize="9px" fontWeight="800" textTransform="uppercase" letterSpacing="0.1em">
+              System Diagnostics
             </Text>
           </HStack>
-          <VStack align="start" gap={2} fontFamily="monospace" fontSize="12px" color="ink/80">
-            <Text>MODALITY: GESTURE_DETECTION_V1</Text>
-            <Text>BACKEND: {conversationId ? `CONNECTED (${conversationId})` : "READY"}</Text>
-            <Text>ENCRYPTION: AES-GCM-256</Text>
-            {detectedGesture && (
-              <Text color="brand-pink" fontWeight="bold">
-                LAST_MATCH: {detectedGesture.gesture} (
-                {Math.round(detectedGesture.confidence * 100)}%)
-              </Text>
-            )}
+          <VStack align="start" gap={3}>
+             <HStack w="full" justify="space-between">
+                <Text fontSize="11px" fontWeight="600" color="muted">Modality Status</Text>
+                <Text fontSize="11px" fontWeight="700">GESTURE_V1 (Active)</Text>
+             </HStack>
+             <HStack w="full" justify="space-between">
+                <Text fontSize="11px" fontWeight="600" color="muted">Encryption</Text>
+                <Text fontSize="11px" fontWeight="700">AES-GCM-256</Text>
+             </HStack>
+             {detectedGesture && (
+               <HStack w="full" justify="space-between" pt={1} borderTop="1px solid" borderColor="hairline-soft">
+                  <Text fontSize="11px" fontWeight="600" color="brand-pink">Confidence Score</Text>
+                  <Text fontSize="11px" fontWeight="800" color="brand-pink">
+                    {Math.round(detectedGesture.confidence * 100)}%
+                  </Text>
+               </HStack>
+             )}
           </VStack>
         </Box>
 
@@ -280,12 +336,12 @@ export default function BridgePage() {
           pt={12}
           justify="space-between"
           opacity={0.3}
-          fontSize="10px"
+          fontSize="9px"
           fontWeight="700"
-          letterSpacing="0.05em"
+          letterSpacing="0.1em"
         >
-          <Text>MIT / VERSION 1.2.0</Text>
-          <Text>© 2026 SENSA</Text>
+          <Text>MIT LICENSE / STABLE</Text>
+          <Text>© 2026 SENSA CLAY REFINED</Text>
         </HStack>
       </Container>
     </Box>
