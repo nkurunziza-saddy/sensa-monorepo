@@ -100,26 +100,20 @@ export default function Home() {
                       Bridge Setup • {step}/2
                     </Text>
                   </HStack>
-                  <Box h="1.2em" display="flex" alignItems="center">
-                    <Heading
-                      fontSize={{ base: "2.5rem", md: "3.5rem" }}
-                      fontWeight="500"
-                      letterSpacing="-0.04em"
-                      lineHeight="1"
-                    >
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={step}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <ScrambleText text={step === 1 ? "Define Person A" : "Define Person B"} />
-                        </motion.div>
-                      </AnimatePresence>
-                    </Heading>
-                  </Box>
+                  <Heading
+                    fontSize={{ base: "2.5rem", md: "3.5rem" }}
+                    fontWeight="500"
+                    letterSpacing="-0.04em"
+                    lineHeight="1"
+                    h="1.2em"
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <ScrambleText
+                      key={step}
+                      text={step === 1 ? "Define Person A" : "Define Person B"}
+                    />
+                  </Heading>
                   <Text fontSize="md" color="muted" maxW="440px">
                     {step === 1
                       ? "Select the primary interaction needs for the first participant."
