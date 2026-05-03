@@ -76,108 +76,103 @@ export default function Home() {
       overflow="hidden"
     >
       <Container maxW="1000px" py={12} zIndex={1}>
-        <AnimatePresence mode="wait">
-          <MotionVStack
-            key={step}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            gap={12}
-            align="start"
-            w="full"
-          >
-            <VStack gap={6} align="start" w="full">
-              <HStack w="full" justify="space-between" align="start">
-                <VStack gap={4} align="start">
-                  <HStack gap={3} opacity={0.5}>
-                    <Text
-                      fontSize="10px"
-                      fontWeight="700"
-                      textTransform="uppercase"
-                      letterSpacing="0.2em"
-                    >
-                      Bridge Setup • {step}/2
-                    </Text>
-                  </HStack>
-                  <Heading
-                    fontSize={{ base: "2.5rem", md: "3.5rem" }}
-                    fontWeight="500"
-                    letterSpacing="-0.04em"
-                    lineHeight="1"
-                    h="1.2em"
-                    display="flex"
-                    alignItems="center"
+        <VStack
+          gap={12}
+          align="start"
+          w="full"
+        >
+          <VStack gap={6} align="start" w="full">
+            <HStack w="full" justify="space-between" align="start">
+              <VStack gap={4} align="start">
+                <HStack gap={3} opacity={0.5}>
+                  <Text
+                    fontSize="10px"
+                    fontWeight="700"
+                    textTransform="uppercase"
+                    letterSpacing="0.2em"
                   >
-                    <ScrambleText
-                      key={step}
-                      text={step === 1 ? "Define Person A" : "Define Person B"}
-                    />
-                  </Heading>
+                    Bridge Setup • {step}/2
+                  </Text>
+                </HStack>
+                <Heading
+                  fontSize={{ base: "2.5rem", md: "3.5rem" }}
+                  fontWeight="500"
+                  letterSpacing="-0.04em"
+                  lineHeight="1"
+                  h="1.2em"
+                  display="flex"
+                  alignItems="center"
+                >
+                  <ScrambleText
+                    key={step}
+                    text={step === 1 ? "Define Person A" : "Define Person B"}
+                  />
+                </Heading>
+                <Box h="3em">
                   <Text fontSize="md" color="muted" maxW="440px">
                     {step === 1
                       ? "Select the primary interaction needs for the first participant."
                       : "Configure the profile for their communication partner."}
                   </Text>
-                </VStack>
-
-                {/* SMALLER ORB PREVIEW */}
-                <Box w="140px" h="140px" opacity={step === 2 ? 1 : 0.4} transition="opacity 0.5s">
-                  <Orb
-                    agentState={agentState}
-                    colors={getConditionColors(step === 1 ? personA || "none" : personB || "none")}
-                  />
                 </Box>
-              </HStack>
-            </VStack>
+              </VStack>
 
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3} w="full">
-              {conditions.map((c) => (
-                <ConditionCard
-                  key={c.id}
-                  active={(step === 1 ? personA : personB) === c.id}
-                  icon={c.icon}
-                  title={c.title}
-                  description={c.desc}
-                  onClick={() => {
-                    if (step === 1) {
-                      setPersonA(c.id as Condition);
-                      setTimeout(() => setStep(2), 400);
-                    } else {
-                      setPersonB(c.id as Condition);
-                    }
-                  }}
+              {/* SMALLER ORB PREVIEW */}
+              <Box w="140px" h="140px" opacity={step === 2 ? 1 : 0.4} transition="opacity 0.5s">
+                <Orb
+                  agentState={agentState}
+                  colors={getConditionColors(step === 1 ? personA || "none" : personB || "none")}
                 />
-              ))}
-            </Grid>
-
-            <HStack w="full" justify="space-between" pt={4}>
-              {step === 2 ? (
-                <>
-                  <SmoothButton
-                    variant="ghost"
-                    onClick={() => setStep(1)}
-                    className="text-muted text-xs uppercase tracking-widest"
-                  >
-                    Back to Person A
-                  </SmoothButton>
-                  <SmoothButton
-                    variant="default"
-                    h="12"
-                    px={8}
-                    rounded="clay-md"
-                    onClick={handleStart}
-                    disabled={!personB}
-                  >
-                    Start Bridge <ArrowRight size={16} style={{ marginLeft: "8px" }} />
-                  </SmoothButton>
-                </>
-              ) : (
-                <Box h="12" />
-              )}
+              </Box>
             </HStack>
-          </MotionVStack>
-        </AnimatePresence>
+          </VStack>
+
+          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3} w="full">
+            {conditions.map((c) => (
+              <ConditionCard
+                key={c.id}
+                active={(step === 1 ? personA : personB) === c.id}
+                icon={c.icon}
+                title={c.title}
+                description={c.desc}
+                onClick={() => {
+                  if (step === 1) {
+                    setPersonA(c.id as Condition);
+                    setTimeout(() => setStep(2), 400);
+                  } else {
+                    setPersonB(c.id as Condition);
+                  }
+                }}
+              />
+            ))}
+          </Grid>
+
+          <HStack w="full" justify="space-between" pt={4}>
+            {step === 2 ? (
+              <>
+                <SmoothButton
+                  variant="ghost"
+                  onClick={() => setStep(1)}
+                  className="text-muted text-xs uppercase tracking-widest"
+                >
+                  Back to Person A
+                </SmoothButton>
+                <SmoothButton
+                  variant="default"
+                  h="12"
+                  px={8}
+                  rounded="clay-md"
+                  onClick={handleStart}
+                  disabled={!personB}
+                >
+                  Start Bridge <ArrowRight size={16} style={{ marginLeft: "8px" }} />
+                </SmoothButton>
+              </>
+            ) : (
+              <Box h="12" />
+            )}
+          </HStack>
+        </VStack>
       </Container>
     </Box>
   );
