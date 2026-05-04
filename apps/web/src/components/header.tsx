@@ -1,6 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
+import Image from "next/image";
 import { Flex, Box, Text, HStack } from "@chakra-ui/react";
 
 export default function Header() {
@@ -27,6 +28,14 @@ export default function Header() {
           href="/"
           style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}
         >
+          <Image
+            src="/logo_sensa0.png"
+            alt="Sensa Logo"
+            width={24}
+            height={24}
+            priority
+            style={{ objectFit: "contain" }}
+          />
           <Text fontWeight="600" fontSize="18px" letterSpacing="-0.03em" color="primary">
             Sensa
           </Text>
